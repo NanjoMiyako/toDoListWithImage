@@ -7,10 +7,10 @@ from PIL import  Image, ImageTk
 import tkinter
 import numpy
 import cv2
+import os
 
-
-gTab1 = ''
-gTab2 = ''
+gSijoTab1 = ''
+gTaskListTab = ''
 gTab3 = ''
 
 
@@ -26,10 +26,17 @@ gSijoTabSuishoWidthLabel=''
 gSijoTabSuishoHeightLabel=''
 gSijoTabPriceLabel=''
 
+gTaskDataURL=''
+gGetExpVols=[10,20,30,40]
+gTaskList = [];
+gTaskAddCountButtons = [];
+gTaskDelButtons = [];
+gTaskListTabTree=''
+
 
 def SijoTabSelectBoxselected(event):
-    global gTab1
-    global gTab2
+    global gSijoTab1
+    global gTaskListTab
     global gTab3
     global gCurrentMarketURL
     global gCurrentMarketName
@@ -71,8 +78,8 @@ def SijoTabSelectBoxselected(event):
     print(var1)
 
 def main():
-    global gTab1
-    global gTab2
+    global gSijoTab1
+    global gTaskListTab
     global gTab3
     global gCurrentMarketURL
     global gCurrentMarketName
@@ -93,20 +100,20 @@ def main():
     #メインウィンドウにnotebook作成
     nb = ttk.Notebook(main_view)
     
-    gTab1 = tkinter.Frame(nb)
-    gTab2 = tkinter.Frame(nb)
+    gSijoTab1 = tkinter.Frame(nb)
+    gTaskListTab = tkinter.Frame(nb)
     gTab3 = tkinter.Frame(nb)
     
-    nb.add(gTab1, text="市場", padding=3)
-    nb.add(gTab2, text="tab2", padding=3)
+    nb.add(gSijoTab1, text="市場", padding=3)
+    nb.add(gTaskListTab, text="タスク一覧", padding=3)
     nb.add(gTab3, text="tab3", padding=3)
     
     #メインフレームでのnotebook配置を決定する。
     nb.pack(expand=1, fill="both")
  
     #各タブの内容を記載する。
-    sijoTab_main(gTab1)
-    tab2_main(gTab2)
+    sijoTab_main()
+    gTaskListTab_main()
     tab3_main(gTab3)
  
     #main_viewを表示する無限ループ
@@ -114,9 +121,9 @@ def main():
  
     return 0
  
-def sijoTab_main(tab1):
-    global gTab1
-    global gTab2
+def sijoTab_main():
+    global gSijoTab1
+    global gTaskListTab
     global gTab3
     global gCurrentMarketURL
     global gCurrentMarketName
@@ -129,55 +136,55 @@ def sijoTab_main(tab1):
     global gSijoTabPriceLabel
     
     #文字を表示する。
-    title_name = tkinter.Label(gTab1, text="市場")
+    title_name = tkinter.Label(gSijoTab1, text="市場")
     title_name.place(x=10, y=30)
     
-    label1 = tkinter.Label(gTab1, text="市場URL")
+    label1 = tkinter.Label(gSijoTab1, text="市場URL")
     label1.place(x=10, y=60)
     
     # Text
-    txt = Text(gTab1, height=1, width=30)
+    txt = Text(gSijoTab1, height=1, width=30)
     txt.insert(1.0, "")
     txt.place(x=100, y=60)
     
     # ボタン
     button1 = ttk.Button(
-        gTab1,
+        gSijoTab1,
         text='市場へジャンプ',
         command=lambda: jumpToSijo(txt))
     button1.place(x=10,y=90)
     
     
-    gSijoTabSijoNameLabel = tkinter.Label(gTab1, text="市場名:")
+    gSijoTabSijoNameLabel = tkinter.Label(gSijoTab1, text="市場名:")
     gSijoTabSijoNameLabel.place(x=10, y=120)
     
     #ListBox
-    gSijoTabSelectBox = Listbox(gTab1, height=10)
+    gSijoTabSelectBox = Listbox(gSijoTab1, height=10)
     gSijoTabSelectBox.place(x=10, y=150)
     gSijoTabSelectBox.bind('<<ListboxSelect>>',SijoTabSelectBoxselected);
     
     img = Image.open("test1.png");
     img = img.resize((100, 100), Image.ANTIALIAS)
     img2 = ImageTk.PhotoImage(img)
-    gSijoTabShohinLabel = tkinter.Label(gTab1, image=img2)
+    gSijoTabShohinLabel = tkinter.Label(gSijoTab1, image=img2)
     gSijoTabShohinLabel.image = img2
     gSijoTabShohinLabel.place(x=150, y=150)
     
     
-    gSijoTabSuishoHeightLabel = tkinter.Label(gTab1, text="推奨高さ:")
+    gSijoTabSuishoHeightLabel = tkinter.Label(gSijoTab1, text="推奨高さ:")
     gSijoTabSuishoHeightLabel.place(x=150, y=260)
     
-    gSijoTabSuishoWidthLabel = tkinter.Label(gTab1, text="推奨幅:")
+    gSijoTabSuishoWidthLabel = tkinter.Label(gSijoTab1, text="推奨幅:")
     gSijoTabSuishoWidthLabel.place(x=150, y=290)
     
-    gSijoTabPriceLabel = tkinter.Label(gTab1, text="購入に必要なポイント:")
+    gSijoTabPriceLabel = tkinter.Label(gSijoTab1, text="購入に必要なポイント:")
     gSijoTabPriceLabel.place(x=150, y=320)
     
     return 0
     
 def jumpToSijo(textBox1):
-    global gTab1
-    global gTab2
+    global gSijoTab1
+    global gTaskListTab
     global gTab3
     global gCurrentMarketURL
     global gCurrentMarketName
@@ -193,8 +200,8 @@ def jumpToSijo(textBox1):
     DisplaySijoData();
     
 def loadSijoData(URL):
-    global gTab1
-    global gTab2
+    global gSijoTab1
+    global gTaskListTab
     global gTab3
     global gCurrentMarketURL
     global gCurrentMarketName
@@ -229,8 +236,8 @@ def loadSijoData(URL):
     return
     
 def DisplaySijoData():
-    global gTab1
-    global gTab2
+    global gSijoTab1
+    global gTaskListTab
     global gTab3
     global gCurrentMarketURL
     global gCurrentMarketName
@@ -244,12 +251,135 @@ def DisplaySijoData():
         
     return
         
-def tab2_main(tab2):
-    #文字を表示する。
-    param_name = tkinter.Label(tab2, text="タブ2の内容")
-    param_name.place(x=10, y=20)
+def gTaskListTab_main():
+    global gTaskListTab
+    global gTaskListTabTree
+    global gTaskAddCountButtons
+    global gTaskDelButtons
+    
+    #文字を表示する
+    param_name = tkinter.Label(gTaskListTab, text="タスク一覧")
+    param_name.place(x=10, y=30)
+    
+    gTaskListTabTree = ttk.Treeview(gTaskListTab);
+
+    gTaskListTabTree["columns"] = (1, 2, 3, 4)
+    gTaskListTabTree["show"] = "headings"
+
+    gTaskListTabTree.column(1,width=150)
+    gTaskListTabTree.column(2,width=90)
+    gTaskListTabTree.column(3,width=70)
+    gTaskListTabTree.column(4,width=120)
+    
+    gTaskListTabTree.heading(1,text="タイトル")
+    gTaskListTabTree.heading(2,text="達成回数")
+    gTaskListTabTree.heading(3,text="+")
+    gTaskListTabTree.heading(4,text="タスク操作")
+    
+    gTaskListTabTree.place(x=10, y=60)
+    
+    path1 = os.getcwd()
+    loadTaskData(path1);
+    DisplayTaskListTab();
+    
     return 0
- 
+
+def loadTaskData(URL):
+    global gTaskList
+    
+    path1 = URL + '\prop\TaskData.txt'
+    
+    try:
+        f = open(path1, encoding='UTF-8')
+    except OSError as e:
+        messagebox.showinfo('エラー','タスクデータがありません')
+        return
+    else:
+        gTaskDataURL = path1;
+        lines = f.readlines()
+        
+        gTaskList = [];
+        for line in lines:
+            line = line.rstrip('\n')
+            vars = line.split(',');
+            #タイトル,難易度,達成回数,リセット日時,リセット間隔(D,W,M,Y)
+            gTaskList.append(vars) 
+        
+        f.close()
+        
+    return
+
+def DisplayTaskListTab():
+    global gTaskListTab
+    global gTaskListTabTree
+    global gTaskList
+    global gTaskAddCountButtons
+    global gTaskDelButtons
+    
+    for i in gTaskListTabTree.get_children():
+        gTaskListTabTree.delete(i)
+    
+    for b1 in gTaskAddCountButtons:
+        b1.place_forget()
+    
+    for b2 in gTaskDelButtons:
+        b2.place_forget()
+        
+    style = ttk.Style(gTaskListTab)
+    style.configure("Treeview", rowheight=30)
+    
+    lineIdx=0
+    for t1 in gTaskList:
+        gTaskListTabTree.insert("","end",values=(t1[0],"", t1[2], ""))    
+            # ボタン
+        button1 = ttk.Button(
+            gTaskListTab,
+            text='達成',
+            command=addTaskCountCallBack(t1[0]))
+        button1.place(x=170,y=90+30*lineIdx)
+        gTaskAddCountButtons.append(button1)
+        
+        button2 = ttk.Button(
+            gTaskListTab,
+            text='このタスクを削除',
+            command=deleteTaskCallBack(t1[0]))
+        button2.place(x=350,y=90+30*lineIdx)
+        gTaskDelButtons.append(button2)
+        
+        lineIdx = lineIdx + 1
+        
+    return
+
+def addTaskCountCallBack(title):        
+    
+    def addTaskCount():
+        global gTaskList
+    
+        for t1 in gTaskList:
+            if title == t1[0]:
+                t1[2] = int(t1[2]) + 1
+        
+        DisplayTaskListTab()
+        
+    return addTaskCount
+    
+def deleteTaskCallBack(title):
+    
+    def deleteTask():
+        global gTaskList
+            
+        result=[]
+        for t1 in gTaskList:
+            if title != t1[0]:
+                result.append(t1) 
+        
+        
+        print("aaa");
+        gTaskList = result
+        DisplayTaskListTab()
+        
+    return deleteTask
+     
 def tab3_main(tab3):
     #文字を表示する。
     param_name = tkinter.Label(tab3, text="タブ3の内容")
