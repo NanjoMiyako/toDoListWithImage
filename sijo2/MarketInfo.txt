@@ -1,0 +1,4 @@
+Name,市場2
+1,机2,tukue1.png,100
+2,イス2,isu1.png,200
+3,棚2,tana1.png,150
