@@ -10,6 +10,9 @@ import cv2
 import os
 import datetime
 
+gRoomWidth = 300
+gRoomHeight = 300
+
 gSijoTab1 = ''
 gTaskListTab = ''
 gAddTaskTab = ''
@@ -42,15 +45,20 @@ gAddTaskTabTitleEntry = ''
 gRoomImg=''
 gAddFanitureTabPosXEntry=''
 gAddFanitureTabPosYEntry=''
+gAddFanitureTabPosZEntry=''
 gAddFanitureTabSizeXEntry=''
 gAddFanitureTabSizeYEntry=''
 
 gMyFaniture=[];
+gMyFaniturePrev=[];
 gCurrentRoomImg=''
+gCurrentPreviewRoomImg=''
 gFnPosX = ''
 gFnPosY = ''
+gFnPosZ = ''
 gFnSizeX = ''
 gFnSizeY = ''
+
 
 gMyHavingFaniture=[]
 gHavingFanitureListBox=''
@@ -551,6 +559,7 @@ def gAddFanitureTab_main():
     global gRoomImg
     global gAddFanitureTabPosXEntry
     global gAddFanitureTabPosYEntry
+    global gAddFanitureTabPosZEntry
     global gAddFanitureTabSizeXEntry
     global gAddFanitureTabSizeYEntry
     global gHavingFanitureListBox
@@ -596,21 +605,28 @@ def gAddFanitureTab_main():
     gAddFanitureTabPosYEntry = tkinter.Entry(gAddFanitureTab, width=4)
     gAddFanitureTabPosYEntry.place(x=240, y=120)
     gAddFanitureTabPosYEntry.insert(0, "0")
+    
+
+    posLabel4 = tkinter.Label(gAddFanitureTab, text="z位置:")
+    posLabel4.place(x=200, y=150)
+    gAddFanitureTabPosZEntry = tkinter.Entry(gAddFanitureTab, width=4)
+    gAddFanitureTabPosZEntry.place(x=240, y=150)
+    gAddFanitureTabPosZEntry.insert(0, "0")
         
     sizeLabel = tkinter.Label(gAddFanitureTab, text="大きさ")
-    sizeLabel.place(x=200, y=150)
+    sizeLabel.place(x=200, y=180)
     
     sizeLabel2 = tkinter.Label(gAddFanitureTab, text="高さ:")
-    sizeLabel2.place(x=200, y=180)
-    gAddFanitureTabSizeXEntry = tkinter.Entry(gAddFanitureTab, width=4)
-    gAddFanitureTabSizeXEntry.place(x=240, y=180)
-    gAddFanitureTabSizeXEntry.insert(0, "0")
-        
-    sizeLabel3 = tkinter.Label(gAddFanitureTab, text="幅:")
-    sizeLabel3.place(x=200, y=210)
+    sizeLabel2.place(x=200, y=210)
     gAddFanitureTabSizeYEntry = tkinter.Entry(gAddFanitureTab, width=4)
     gAddFanitureTabSizeYEntry.place(x=240, y=210)
     gAddFanitureTabSizeYEntry.insert(0, "0")
+        
+    sizeLabel3 = tkinter.Label(gAddFanitureTab, text="幅:")
+    sizeLabel3.place(x=200, y=240)
+    gAddFanitureTabSizeXEntry = tkinter.Entry(gAddFanitureTab, width=4)
+    gAddFanitureTabSizeXEntry.place(x=240, y=240)
+    gAddFanitureTabSizeXEntry.insert(0, "0")
     
     img = Image.open("blank.png");
     img = img.resize((100, 100), Image.ANTIALIAS)
@@ -631,61 +647,74 @@ def gAddFanitureTab_main():
 def getFaniturePosAndSizeEntryVals():
     global gFnPosX
     global gFnPosY
+    global gFnPosZ
     global gFnSizeX
     global gFnSizeY
     global gAddFanitureTab
     global gRoomImg
     global gAddFanitureTabPosXEntry
     global gAddFanitureTabPosYEntry
+    global gAddFanitureTabPosZEntry
     global gAddFanitureTabSizeXEntry
     global gAddFanitureTabSizeYEntry
         
     gFnPosX = 0
     gFnPosY = 0
+    gFnPosZ = 0
     gFnSizeX = 0
     gFnSizeY = 0
     
     NStr1 = gAddFanitureTabPosXEntry.get()
     if not NStr1.isdecimal():
-        return
+        return False
     else :
         Num = int(NStr1)
         if Num < 0:
-            return
+            return False
         else:
             gFnPosX = Num
             
     NStr2 = gAddFanitureTabPosYEntry.get()
     if not NStr2.isdecimal():
-        return
+        return False
     else :
         Num = int(NStr2)
         if Num < 0:
-            return
+            return False
         else:
             gFnPosY = Num
             
+    NStr5 = gAddFanitureTabPosZEntry.get()
+    if not NStr5.isdecimal():
+        return False
+    else :
+        Num = int(NStr5)
+        if Num < 0:
+            return False
+        else:
+            gFnPosZ = Num            
+            
     NStr3 = gAddFanitureTabSizeXEntry.get()
     if not NStr3.isdecimal():
-        return
+        return False
     else :
         Num = int(NStr3)
         if Num <= 0:
-            return
+            return False
         else:
-            gFnSizeY = Num
+            gFnSizeX = Num
             
     NStr4 = gAddFanitureTabSizeYEntry.get()
     if not NStr4.isdecimal():
-        return
+        return False
     else :
         Num = int(NStr4)
         if Num <= 0:
-            return
+            return False
         else:
-            gFnSizeX = Num
+            gFnSizeY = Num
         
-    return
+    return True
 
 def setFanitureCallBack():        
     
@@ -820,17 +849,47 @@ def MixImage(imgURL1, imgURL2):
 def DisplayPreViewCallBack():
 
     def DisplayPreView():
+        global gCurrentPreviewRoomImg
+        global gRoomWidth
+        global gRoomHeight
         global gFnPosX
         global gFnPosY
         global gFnSizeX
         global gFnSizeY
+        global gAddFanitureTab
+        global gHavingFanitureListBox
+        global gMyHavingFaniture
+        global gAddFanitureTabFnImgLabel
+        global gMyFaniture
+        global gMyFaniturePrev
+    
+        if not gHavingFanitureListBox.curselection():
+            return 
+        crSelectIdx = gHavingFanitureListBox.curselection()[0];
+
+        if not getFaniturePosAndSizeEntryVals():
+            return
+            
+        gMyFaniturePrev = gMyFaniture.copy()
         
-        preViewImg = gCurrentRoomImg.copy()
-        getFaniturePosAndSizeEntryVals()
+        val1 = [gMyHavingFaniture[crSelectIdx][0], gMyHavingFaniture[crSelectIdx][1], gFnPosX, gFnPosY, gFnPosZ,gFnSizeY, gFnSizeX]
+        gMyFaniturePrev.append(val1)
+
+        gMyFaniturePrev = sorted(gMyFaniturePrev, reverse=False, key=lambda x:x[4])
         
-        fn2Img = cv2.imread("test1.png")
-        preViewImg = AddImage(preViewImg, fn2Img, gFnPosX, gFnPosY, gFnSizeX, gFnSizeY)
-        cv2.imshow("RoomPreview", preViewImg)
+        roomImg = cv2.imread("blank.png")    
+        roomImg = cv2.resize(roomImg, (gRoomWidth, gRoomHeight) )
+        
+        for fn in gMyFaniturePrev:
+            fnURL = getFanitureImgURL(fn[0], fn[1])
+            fnImg = cv2.imread(fnURL)
+            roomImg = AddImage(roomImg, fnImg, fn[2], fn[3], fn[5], fn[6])
+        
+        gCurrentPreviewRoomImg = roomImg
+
+        cv2.imshow("previewRoom", roomImg)
+        
+        return
     
     return DisplayPreView
     
