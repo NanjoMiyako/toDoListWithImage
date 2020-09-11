@@ -1,0 +1,13 @@
+Name,市場1
+1,机,tukue1.png,100
+2,イス,isu1.png,200
+3,棚,tana1.png,150
+4,机,tukue1.png,100
+5,イス,isu1.png,200
+6,棚,tana1.png,150
+7,机,tukue1.png,100
+8,イス,isu1.png,200
+9,棚,tana1.png,150
+10,机,tukue1.png,100
+11,イス,isu1.png,200
+12,棚,tana1.png,150

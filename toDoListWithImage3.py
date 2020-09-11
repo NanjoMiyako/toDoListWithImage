@@ -52,6 +52,10 @@ gFnPosY = ''
 gFnSizeX = ''
 gFnSizeY = ''
 
+gMyHavingFaniture=[]
+gHavingFanitureListBox=''
+gAddFanitureTabFnImgLabel=''
+
 def SijoTabSelectBoxselected(event):
     global gSijoTab1
     global gTaskListTab
@@ -77,7 +81,7 @@ def SijoTabSelectBoxselected(event):
     img2 = ImageTk.PhotoImage(img)
     gSijoTabShohinLabel.configure(image=img2)
     gSijoTabShohinLabel.image = img2
-    gSijoTabShohinLabel.place(x=150, y=150)
+    gSijoTabShohinLabel.place(x=200, y=150)
     
     
     im2 = cv2.imread(imgURL)
@@ -92,8 +96,6 @@ def SijoTabSelectBoxselected(event):
     str1 = "購入に必要なポイント:" + str(gMarketShohinList[crSelectIdx][3])
     gSijoTabPriceLabel.configure(text=str1);
 
-    
-    print(var1)
 
 def main():
     global gSijoTab1
@@ -186,22 +188,30 @@ def sijoTab_main():
     gSijoTabSelectBox.place(x=10, y=150)
     gSijoTabSelectBox.bind('<<ListboxSelect>>',SijoTabSelectBoxselected);
     
-    img = Image.open("test1.png");
+    # Scrollbar
+    scrollbar = ttk.Scrollbar(
+        gSijoTab1,
+        orient=VERTICAL,
+        command=gSijoTabSelectBox.yview)
+    gSijoTabSelectBox['yscrollcommand'] = scrollbar.set
+    scrollbar.place(x=150, y=150, width=30, height=150)
+    
+    img = Image.open("blank.png");
     img = img.resize((100, 100), Image.ANTIALIAS)
     img2 = ImageTk.PhotoImage(img)
     gSijoTabShohinLabel = tkinter.Label(gSijoTab1, image=img2)
     gSijoTabShohinLabel.image = img2
-    gSijoTabShohinLabel.place(x=150, y=150)
+    gSijoTabShohinLabel.place(x=200, y=150)
     
     
     gSijoTabSuishoHeightLabel = tkinter.Label(gSijoTab1, text="推奨高さ:")
-    gSijoTabSuishoHeightLabel.place(x=150, y=260)
+    gSijoTabSuishoHeightLabel.place(x=200, y=260)
     
     gSijoTabSuishoWidthLabel = tkinter.Label(gSijoTab1, text="推奨幅:")
-    gSijoTabSuishoWidthLabel.place(x=150, y=290)
+    gSijoTabSuishoWidthLabel.place(x=200, y=290)
     
     gSijoTabPriceLabel = tkinter.Label(gSijoTab1, text="購入に必要なポイント:")
-    gSijoTabPriceLabel.place(x=150, y=320)
+    gSijoTabPriceLabel.place(x=200, y=320)
     
     return 0
     
@@ -412,7 +422,6 @@ def deleteTaskCallBack(title):
                 result.append(t1) 
         
         
-        print("aaa");
         gTaskList = result
         DisplayTaskListTab()
         
@@ -512,6 +521,30 @@ def saveTaskList():
         DisplayTaskListTab()
 
     return
+def gHavingFanitureListBoxSelected(event):
+    global gAddFanitureTab
+    global gHavingFanitureListBox
+    global gMyHavingFaniture
+    global gAddFanitureTabFnImgLabel
+    
+    if not gHavingFanitureListBox.curselection():
+        return 
+    crSelectIdx = gHavingFanitureListBox.curselection()[0];
+
+    imgURL = getFanitureImgURL(gMyHavingFaniture[crSelectIdx][0],gMyHavingFaniture[crSelectIdx][1])
+    img = Image.open(imgURL);
+    img = img.resize((100, 100), Image.ANTIALIAS)
+    img2 = ImageTk.PhotoImage(img)
+    gAddFanitureTabFnImgLabel.configure(image=img2)
+    gAddFanitureTabFnImgLabel.image = img2
+    gAddFanitureTabFnImgLabel.place(x=300, y=50)
+    
+    
+    im2 = cv2.imread(imgURL)
+    sh, sw, c = im2.shape;
+
+
+    return 0
     
 def gAddFanitureTab_main():
     global gAddFanitureTab
@@ -520,41 +553,72 @@ def gAddFanitureTab_main():
     global gAddFanitureTabPosYEntry
     global gAddFanitureTabSizeXEntry
     global gAddFanitureTabSizeYEntry
+    global gHavingFanitureListBox
+    global gMyHavingFaniture
+    global gAddFanitureTabFnImgLabel
     
     
     #文字を表示する。
     param_name = tkinter.Label(gAddFanitureTab, text="家具配置")
     param_name.place(x=10, y=30)
+
+    #ListBox
+    gHavingFanitureListBox = Listbox(gAddFanitureTab, height=10)
+    gHavingFanitureListBox.place(x=10, y=60)
+    gHavingFanitureListBox.bind('<<ListboxSelect>>',gHavingFanitureListBoxSelected);
+    
+    LoadHavingFaniture()
+    
+    gHavingFanitureListBox.delete(0, tkinter.END);
+    for hFn in gMyHavingFaniture:
+        gHavingFanitureListBox.insert(tkinter.END, hFn[2])
+        
+    
+    # Scrollbar
+    scrollbar = ttk.Scrollbar(
+        gAddFanitureTab,
+        orient=VERTICAL,
+        command=gHavingFanitureListBox.yview)
+    gHavingFanitureListBox['yscrollcommand'] = scrollbar.set
+    scrollbar.place(x=150, y=60, width=30, height=150)
     
     posLabel = tkinter.Label(gAddFanitureTab, text="配置位置")
-    posLabel.place(x=10, y=60)
+    posLabel.place(x=200, y=60)
     
     posLabel2 = tkinter.Label(gAddFanitureTab, text="x位置:")
-    posLabel2.place(x=10, y=90)
+    posLabel2.place(x=200, y=90)
     gAddFanitureTabPosXEntry = tkinter.Entry(gAddFanitureTab, width=4)
-    gAddFanitureTabPosXEntry.place(x=60, y=90)
+    gAddFanitureTabPosXEntry.place(x=240, y=90)
     gAddFanitureTabPosXEntry.insert(0, "0")
     
     posLabel3 = tkinter.Label(gAddFanitureTab, text="y位置:")
-    posLabel3.place(x=10, y=120)
+    posLabel3.place(x=200, y=120)
     gAddFanitureTabPosYEntry = tkinter.Entry(gAddFanitureTab, width=4)
-    gAddFanitureTabPosYEntry.place(x=60, y=120)
+    gAddFanitureTabPosYEntry.place(x=240, y=120)
     gAddFanitureTabPosYEntry.insert(0, "0")
         
     sizeLabel = tkinter.Label(gAddFanitureTab, text="大きさ")
-    sizeLabel.place(x=10, y=150)
+    sizeLabel.place(x=200, y=150)
     
     sizeLabel2 = tkinter.Label(gAddFanitureTab, text="高さ:")
-    sizeLabel2.place(x=10, y=180)
+    sizeLabel2.place(x=200, y=180)
     gAddFanitureTabSizeXEntry = tkinter.Entry(gAddFanitureTab, width=4)
-    gAddFanitureTabSizeXEntry.place(x=60, y=180)
+    gAddFanitureTabSizeXEntry.place(x=240, y=180)
     gAddFanitureTabSizeXEntry.insert(0, "0")
         
     sizeLabel3 = tkinter.Label(gAddFanitureTab, text="幅:")
-    sizeLabel3.place(x=10, y=210)
+    sizeLabel3.place(x=200, y=210)
     gAddFanitureTabSizeYEntry = tkinter.Entry(gAddFanitureTab, width=4)
-    gAddFanitureTabSizeYEntry.place(x=60, y=210)
+    gAddFanitureTabSizeYEntry.place(x=240, y=210)
     gAddFanitureTabSizeYEntry.insert(0, "0")
+    
+    img = Image.open("blank.png");
+    img = img.resize((100, 100), Image.ANTIALIAS)
+    img2 = ImageTk.PhotoImage(img)
+    gAddFanitureTabFnImgLabel = tkinter.Label(gAddFanitureTab, image=img2)
+    gAddFanitureTabFnImgLabel.image = img2
+    gAddFanitureTabFnImgLabel.place(x=300, y=50)
+    
         
     DisplayRoom(300,300)
     
@@ -815,7 +879,8 @@ def getFanitureImgURL(sijoURL, fnId):
         f.close()
         
     return path2
-    
+
+#現在部屋に置かれている家具のリストをロードする    
 def LoadFaniture():
     global gMyFaniture
     
@@ -857,7 +922,71 @@ def LoadFaniture():
         
         
     return
+
+#現在持っている家具のリストをロードする    
+def LoadHavingFaniture():
+    global gMyHavingFaniture
     
+    URL = os.getcwd()
+    path1 = URL + '\prop\MyHavingFaniture.txt'
+    print(path1)
+    
+    try:
+        f = open(path1, encoding='UTF-8')
+    except OSError as e:
+        messagebox.showinfo('エラー','持っている家具リストファイルがありません')
+        return
+    else:
+        lines = f.readlines()
+        
+        gMyHavingFaniture = [];
+        for line in lines:
+            line = line.rstrip('\n')
+            vars = line.split(',');
+            #市場URL,商品ID
+            gMyHavingFaniture.append(vars) 
+        
+        f.close()
+        
+        for fn1 in gMyHavingFaniture:
+            v1 = int(fn1[1])
+            fn1[1] = v1
+            name1 = getFanitureName(fn1[0], fn1[1])
+            fn1.append(name1)
+            print(fn1)
+        
+        #市場URL,商品ID,商品名
+        gMyHavingFaniture = sorted(gMyHavingFaniture, reverse=False, key=lambda x:x[2])
+        
+    return
+    
+def getFanitureName(sijoURL, fnId):
+    path1 = sijoURL + '\MarketInfo.txt'
+    
+    path2 = ""
+    try:
+        f = open(path1, encoding='UTF-8')
+    except OSError as e:
+        return
+    else:
+        lines = f.readlines()
+        #最初の一行目読み飛ばし
+        lines.pop(0);
+        
+        
+        gMarketShohinList = [];
+        for line in lines:
+            line = line.rstrip('\n')
+            vars = line.split(',');
+            id = int(vars[0])
+            if id == fnId:
+                name = vars[1]
+                break
+        
+        f.close()
+        
+    return name
+
 if __name__ == "__main__":
     main()
     
