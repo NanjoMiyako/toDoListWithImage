@@ -45,6 +45,12 @@ gAddFanitureTabPosYEntry=''
 gAddFanitureTabSizeXEntry=''
 gAddFanitureTabSizeYEntry=''
 
+gMyFaniture=[];
+gCurrentRoomImg=''
+gFnPosX = ''
+gFnPosY = ''
+gFnSizeX = ''
+gFnSizeY = ''
 
 def SijoTabSelectBoxselected(event):
     global gSijoTab1
@@ -550,15 +556,73 @@ def gAddFanitureTab_main():
     gAddFanitureTabSizeYEntry.place(x=60, y=210)
     gAddFanitureTabSizeYEntry.insert(0, "0")
         
-    gRoomImg = cv2.imread("test2.png")
-    cv2.imshow("room", gRoomImg)
+    DisplayRoom(300,300)
     
     button1 = ttk.Button(
         gAddFanitureTab,
         text='プレビュー',
-        command=setFanitureCallBack())
+        command=DisplayPreViewCallBack())
     button1.place(x=10,y=240)
+
+def getFaniturePosAndSizeEntryVals():
+    global gFnPosX
+    global gFnPosY
+    global gFnSizeX
+    global gFnSizeY
+    global gAddFanitureTab
+    global gRoomImg
+    global gAddFanitureTabPosXEntry
+    global gAddFanitureTabPosYEntry
+    global gAddFanitureTabSizeXEntry
+    global gAddFanitureTabSizeYEntry
+        
+    gFnPosX = 0
+    gFnPosY = 0
+    gFnSizeX = 0
+    gFnSizeY = 0
     
+    NStr1 = gAddFanitureTabPosXEntry.get()
+    if not NStr1.isdecimal():
+        return
+    else :
+        Num = int(NStr1)
+        if Num < 0:
+            return
+        else:
+            gFnPosX = Num
+            
+    NStr2 = gAddFanitureTabPosYEntry.get()
+    if not NStr2.isdecimal():
+        return
+    else :
+        Num = int(NStr2)
+        if Num < 0:
+            return
+        else:
+            gFnPosY = Num
+            
+    NStr3 = gAddFanitureTabSizeXEntry.get()
+    if not NStr3.isdecimal():
+        return
+    else :
+        Num = int(NStr3)
+        if Num <= 0:
+            return
+        else:
+            gFnSizeY = Num
+            
+    NStr4 = gAddFanitureTabSizeYEntry.get()
+    if not NStr4.isdecimal():
+        return
+    else :
+        Num = int(NStr4)
+        if Num <= 0:
+            return
+        else:
+            gFnSizeX = Num
+        
+    return
+
 def setFanitureCallBack():        
     
     def setFaniture():
@@ -610,7 +674,7 @@ def setFanitureCallBack():
                 SizeX = Num
 
         test1 = cv2.imread("test1.png")
-        out1 = AddImage(gRoomImg, test1, PosX, PosY, SizeX, SizeY)
+        out1 = AddImage(gRoomImg, test1, PosX, PosY, SizeY, SizeX)
         cv2.imshow("room",out1)
         
         return 1
@@ -633,7 +697,12 @@ def isInRect(x, y, sx, sy, width, height):
         
     return True
 
-def AddImage(img1, img2, sx, sy, size_x, size_y):
+def AddImage(img1, img2, sx, sy, size_y, size_x):
+
+    if size_y <= 0:
+        return img1
+    elif size_x <= 0:
+        return img1
     
     im1w, im1h, im1c = img1.shape;
     
@@ -641,7 +710,7 @@ def AddImage(img1, img2, sx, sy, size_x, size_y):
     
     out_img = cv2.imread("blank.png")
     out_img = cv2.resize(out_img,(im1w, im1h))
-   
+
     width, height, channel = out_img.shape;
     for y in range(height):
         for x in range(width):
@@ -683,6 +752,111 @@ def MixImage(imgURL1, imgURL2):
                 out_img[y, x, 2] = pixelValue2[2];
                 
     return out_img
+
+def DisplayPreViewCallBack():
+
+    def DisplayPreView():
+        global gFnPosX
+        global gFnPosY
+        global gFnSizeX
+        global gFnSizeY
+        
+        preViewImg = gCurrentRoomImg.copy()
+        getFaniturePosAndSizeEntryVals()
+        
+        fn2Img = cv2.imread("test1.png")
+        preViewImg = AddImage(preViewImg, fn2Img, gFnPosX, gFnPosY, gFnSizeX, gFnSizeY)
+        cv2.imshow("RoomPreview", preViewImg)
+    
+    return DisplayPreView
+    
+def DisplayRoom(roomWidth, roomHeight):
+    global gMyFaniture
+    global gCurrentRoomImg
+    
+    roomImg = cv2.imread("blank.png")    
+    roomImg = cv2.resize(roomImg, (roomWidth, roomHeight) )
+    
+    LoadFaniture()
+
+    for fn in gMyFaniture:
+        fnURL = getFanitureImgURL(fn[0], fn[1])
+        fnImg = cv2.imread(fnURL)
+        roomImg = AddImage(roomImg, fnImg, fn[2], fn[3], fn[5], fn[6])
+    
+    gCurrentRoomImg = roomImg
+
+    cv2.imshow("room", roomImg)
+    return
+    
+def getFanitureImgURL(sijoURL, fnId):
+    path1 = sijoURL + '\MarketInfo.txt'
+    
+    path2 = ""
+    try:
+        f = open(path1, encoding='UTF-8')
+    except OSError as e:
+        return
+    else:
+        lines = f.readlines()
+        #最初の一行目読み飛ばし
+        lines.pop(0);
+        
+        
+        gMarketShohinList = [];
+        for line in lines:
+            line = line.rstrip('\n')
+            vars = line.split(',');
+            id = int(vars[0])
+            if id == fnId:
+                path2 = sijoURL + "\\" + vars[2]
+                break
+        
+        f.close()
+        
+    return path2
+    
+def LoadFaniture():
+    global gMyFaniture
+    
+    URL = os.getcwd()
+    path1 = URL + '\prop\MyRoomFaniture.txt'
+    
+    try:
+        f = open(path1, encoding='UTF-8')
+    except OSError as e:
+        messagebox.showinfo('エラー','部屋の家具データがありません')
+        return
+    else:
+        lines = f.readlines()
+        
+        gMyFaniture = [];
+        for line in lines:
+            line = line.rstrip('\n')
+            vars = line.split(',');
+            #市場URL,商品ID,x位置,y位置,z位置,高さ,幅
+            gMyFaniture.append(vars) 
+        
+        f.close()
+        
+        for fn1 in gMyFaniture:
+            v1 = int(fn1[1])
+            v2 = int(fn1[2])
+            v3 = int(fn1[3])
+            v4 = int(fn1[4])
+            v5 = int(fn1[5])
+            v6 = int(fn1[6])
+            fn1[1] = v1
+            fn1[2] = v2
+            fn1[3] = v3
+            fn1[4] = v4
+            fn1[5] = v5
+            fn1[6] = v6
+        
+        gMyFaniture = sorted(gMyFaniture, reverse=False, key=lambda x:x[4])
+        
+        
+    return
     
 if __name__ == "__main__":
     main()
