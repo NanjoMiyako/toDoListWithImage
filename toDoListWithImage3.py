@@ -40,6 +40,11 @@ gRisetSpanRadioValue = ''
 gAddTaskTabTitleEntry = ''
 
 gRoomImg=''
+gAddFanitureTabPosXEntry=''
+gAddFanitureTabPosYEntry=''
+gAddFanitureTabSizeXEntry=''
+gAddFanitureTabSizeYEntry=''
+
 
 def SijoTabSelectBoxselected(event):
     global gSijoTab1
@@ -505,27 +510,108 @@ def saveTaskList():
 def gAddFanitureTab_main():
     global gAddFanitureTab
     global gRoomImg
+    global gAddFanitureTabPosXEntry
+    global gAddFanitureTabPosYEntry
+    global gAddFanitureTabSizeXEntry
+    global gAddFanitureTabSizeYEntry
+    
     
     #文字を表示する。
     param_name = tkinter.Label(gAddFanitureTab, text="家具配置")
     param_name.place(x=10, y=30)
     
+    posLabel = tkinter.Label(gAddFanitureTab, text="配置位置")
+    posLabel.place(x=10, y=60)
+    
+    posLabel2 = tkinter.Label(gAddFanitureTab, text="x位置:")
+    posLabel2.place(x=10, y=90)
+    gAddFanitureTabPosXEntry = tkinter.Entry(gAddFanitureTab, width=4)
+    gAddFanitureTabPosXEntry.place(x=60, y=90)
+    gAddFanitureTabPosXEntry.insert(0, "0")
+    
+    posLabel3 = tkinter.Label(gAddFanitureTab, text="y位置:")
+    posLabel3.place(x=10, y=120)
+    gAddFanitureTabPosYEntry = tkinter.Entry(gAddFanitureTab, width=4)
+    gAddFanitureTabPosYEntry.place(x=60, y=120)
+    gAddFanitureTabPosYEntry.insert(0, "0")
+        
+    sizeLabel = tkinter.Label(gAddFanitureTab, text="大きさ")
+    sizeLabel.place(x=10, y=150)
+    
+    sizeLabel2 = tkinter.Label(gAddFanitureTab, text="高さ:")
+    sizeLabel2.place(x=10, y=180)
+    gAddFanitureTabSizeXEntry = tkinter.Entry(gAddFanitureTab, width=4)
+    gAddFanitureTabSizeXEntry.place(x=60, y=180)
+    gAddFanitureTabSizeXEntry.insert(0, "0")
+        
+    sizeLabel3 = tkinter.Label(gAddFanitureTab, text="幅:")
+    sizeLabel3.place(x=10, y=210)
+    gAddFanitureTabSizeYEntry = tkinter.Entry(gAddFanitureTab, width=4)
+    gAddFanitureTabSizeYEntry.place(x=60, y=210)
+    gAddFanitureTabSizeYEntry.insert(0, "0")
+        
     gRoomImg = cv2.imread("test2.png")
     cv2.imshow("room", gRoomImg)
     
     button1 = ttk.Button(
         gAddFanitureTab,
-        text='家具配置',
+        text='プレビュー',
         command=setFanitureCallBack())
-    button1.place(x=10,y=60)
+    button1.place(x=10,y=240)
     
 def setFanitureCallBack():        
     
     def setFaniture():
+        global gAddFanitureTab
+        global gRoomImg
+        global gAddFanitureTabPosXEntry
+        global gAddFanitureTabPosYEntry
+        global gAddFanitureTabSizeXEntry
+        global gAddFanitureTabSizeYEntry
+        
+        NStr1 = gAddFanitureTabPosXEntry.get()
+        if not NStr1.isdecimal():
+            return
+        else :
+            Num = int(NStr1)
+            if Num < 0:
+                return
+            else:
+                PosX = Num
+                
+        NStr2 = gAddFanitureTabPosYEntry.get()
+        if not NStr2.isdecimal():
+            return
+        else :
+            Num = int(NStr2)
+            if Num < 0:
+                return
+            else:
+                PosY = Num
+                
+        NStr3 = gAddFanitureTabSizeXEntry.get()
+        if not NStr3.isdecimal():
+            return
+        else :
+            Num = int(NStr3)
+            if Num <= 0:
+                return
+            else:
+                SizeY = Num
+                
+        NStr4 = gAddFanitureTabSizeYEntry.get()
+        if not NStr4.isdecimal():
+            return
+        else :
+            Num = int(NStr4)
+            if Num <= 0:
+                return
+            else:
+                SizeX = Num
+
         test1 = cv2.imread("test1.png")
-        cv2.imshow("test2",test1)
-        out1 = AddImage(gRoomImg, test1, 30, 30, 30, 30)
-        cv2.imshow("room2",out1)
+        out1 = AddImage(gRoomImg, test1, PosX, PosY, SizeX, SizeY)
+        cv2.imshow("room",out1)
         
         return 1
 
