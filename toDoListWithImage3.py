@@ -13,6 +13,7 @@ import datetime
 gSijoTab1 = ''
 gTaskListTab = ''
 gAddTaskTab = ''
+gAddFanitureTab = ''
 
 
 gCurrentMarketURL=''
@@ -37,6 +38,8 @@ gTaskListTabTree=''
 gNanidoRadioValue = ''
 gRisetSpanRadioValue = ''
 gAddTaskTabTitleEntry = ''
+
+gRoomImg=''
 
 def SijoTabSelectBoxselected(event):
     global gSijoTab1
@@ -85,6 +88,7 @@ def main():
     global gSijoTab1
     global gTaskListTab
     global gAddTaskTab
+    global gAddFanitureTab
     global gCurrentMarketURL
     global gCurrentMarketName
     global gMarketShohinList
@@ -107,10 +111,12 @@ def main():
     gSijoTab1 = tkinter.Frame(nb)
     gTaskListTab = tkinter.Frame(nb)
     gAddTaskTab = tkinter.Frame(nb)
+    gAddFanitureTab = tkinter.Frame(nb)
     
-    nb.add(gSijoTab1, text="市場", padding=3)
-    nb.add(gTaskListTab, text="タスク一覧", padding=3)
-    nb.add(gAddTaskTab, text="タスク追加", padding=3)
+    nb.add(gSijoTab1, text="市場", padding=4)
+    nb.add(gTaskListTab, text="タスク一覧", padding=4)
+    nb.add(gAddTaskTab, text="タスク追加", padding=4)
+    nb.add(gAddFanitureTab, text="家具配置", padding=4)
     
     #メインフレームでのnotebook配置を決定する。
     nb.pack(expand=1, fill="both")
@@ -119,6 +125,8 @@ def main():
     sijoTab_main()
     gTaskListTab_main()
     gAddTaskTab_main()
+    gAddFanitureTab_main()
+    
  
     #main_viewを表示する無限ループ
     main_view.mainloop()
@@ -493,6 +501,103 @@ def saveTaskList():
         DisplayTaskListTab()
 
     return
+    
+def gAddFanitureTab_main():
+    global gAddFanitureTab
+    global gRoomImg
+    
+    #文字を表示する。
+    param_name = tkinter.Label(gAddFanitureTab, text="家具配置")
+    param_name.place(x=10, y=30)
+    
+    gRoomImg = cv2.imread("test2.png")
+    cv2.imshow("room", gRoomImg)
+    
+    button1 = ttk.Button(
+        gAddFanitureTab,
+        text='家具配置',
+        command=setFanitureCallBack())
+    button1.place(x=10,y=60)
+    
+def setFanitureCallBack():        
+    
+    def setFaniture():
+        test1 = cv2.imread("test1.png")
+        cv2.imshow("test2",test1)
+        out1 = AddImage(gRoomImg, test1, 30, 30, 30, 30)
+        cv2.imshow("room2",out1)
+        
+        return 1
+
+        
+    return setFaniture
+
+
+def isInRect(x, y, sx, sy, width, height):
+
+    if x<sx:
+        return False
+    elif x>(sx+width-1):
+        return False
+        
+    if y < sy:
+        return False
+    elif y >(sy+height-1):
+        return False
+        
+    return True
+
+def AddImage(img1, img2, sx, sy, size_x, size_y):
+    
+    im1w, im1h, im1c = img1.shape;
+    
+    img3 = cv2.resize(img2, (size_x, size_y) )
+    
+    out_img = cv2.imread("blank.png")
+    out_img = cv2.resize(out_img,(im1w, im1h))
+   
+    width, height, channel = out_img.shape;
+    for y in range(height):
+        for x in range(width):
+            out_img[y, x] = img1[y, x]
+            if isInRect(x, y, sx, sy, size_x, size_y) == True:
+                pixelValue = img3[y-sy, x-sx]
+                if (pixelValue[0] != 255 
+                    or pixelValue[1] != 255
+                    or pixelValue[2] != 255):
+                    out_img[y, x] = pixelValue
+                
+    return out_img
+    
+def MixImage(imgURL1, imgURL2):
+    img1 = cv2.imread(imgURL1)
+    img2 = cv2.imread(imgURL2)
+    
+    out_img = cv2.imread("blank.png")
+    
+    width, height, channel = out_img.shape;
+    
+    for y in range(height):
+        for x in range(width):
+            pixelValue1 = img1[y, x]
+            pixelValue2 = img2[y, x]
+            
+            if (pixelValue1[0] != 255 
+                or pixelValue1[1] != 255
+                or pixelValue1[2] != 255):
+                out_img[y, x, 0] = pixelValue1[0];
+                out_img[y, x, 1] = pixelValue1[1];
+                out_img[y, x, 2] = pixelValue1[2];
+                
+            if (pixelValue2[0] != 255 
+                or pixelValue2[1] != 255
+                or pixelValue2[2] != 255):
+                out_img[y, x, 0] = pixelValue2[0];
+                out_img[y, x, 1] = pixelValue2[1];
+                out_img[y, x, 2] = pixelValue2[2];
+                
+    return out_img
+    
 if __name__ == "__main__":
     main()
     
