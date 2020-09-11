@@ -53,6 +53,7 @@ gMyFaniture=[];
 gMyFaniturePrev=[];
 gCurrentRoomImg=''
 gCurrentPreviewRoomImg=''
+gPointLabelOnAddFanitureTab=''
 gFnPosX = ''
 gFnPosY = ''
 gFnPosZ = ''
@@ -63,6 +64,30 @@ gFnSizeY = ''
 gMyHavingFaniture=[]
 gHavingFanitureListBox=''
 gAddFanitureTabFnImgLabel=''
+
+def calcFanitureSetPoint(height, width):
+	print("height:"+str(height))
+	print("width:"+str(width))
+	return int(int(10) + (height * width) * 0.4)
+	
+	
+def setNeetPtToSetFanitureCallBack():
+	
+	def setNeetPtToSetFaniture():
+		global gPointLabelOnAddFanitureTab
+		global gFnSizeX
+		global gFnSizeY
+		if not getFaniturePosAndSizeEntryVals():
+			return
+			
+		NeedPt = calcFanitureSetPoint(gFnSizeY, gFnSizeX)
+		str1 = "設置に必要なポイント:"+ str(NeedPt)
+		gPointLabelOnAddFanitureTab.configure(text=str1)
+
+		
+		return
+	
+	return setNeetPtToSetFaniture
 
 def SijoTabSelectBoxselected(event):
     global gSijoTab1
@@ -565,6 +590,7 @@ def gAddFanitureTab_main():
     global gHavingFanitureListBox
     global gMyHavingFaniture
     global gAddFanitureTabFnImgLabel
+    global gPointLabelOnAddFanitureTab
     
     
     #文字を表示する。
@@ -635,6 +661,9 @@ def gAddFanitureTab_main():
     gAddFanitureTabFnImgLabel.image = img2
     gAddFanitureTabFnImgLabel.place(x=300, y=50)
     
+    gPointLabelOnAddFanitureTab = tkinter.Label(gAddFanitureTab, text="設置に必要なポイント:")
+    gPointLabelOnAddFanitureTab.place(x=200, y=270)
+    
         
     DisplayRoom(300,300)
     
@@ -643,6 +672,13 @@ def gAddFanitureTab_main():
         text='プレビュー',
         command=DisplayPreViewCallBack())
     button1.place(x=10,y=240)
+    
+    button1 = ttk.Button(
+        gAddFanitureTab,
+        text='設置に必要なポイント計算',
+        command=setNeetPtToSetFanitureCallBack())
+    button1.place(x=10,y=270)
+    
 
 def getFaniturePosAndSizeEntryVals():
     global gFnPosX
