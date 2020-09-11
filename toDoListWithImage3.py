@@ -8,10 +8,11 @@ import tkinter
 import numpy
 import cv2
 import os
+import datetime
 
 gSijoTab1 = ''
 gTaskListTab = ''
-gTab3 = ''
+gAddTaskTab = ''
 
 
 gCurrentMarketURL=''
@@ -33,6 +34,9 @@ gTaskAddCountButtons = [];
 gTaskDelButtons = [];
 gTaskListTabTree=''
 
+gNanidoRadioValue = ''
+gRisetSpanRadioValue = ''
+gAddTaskTabTitleEntry = ''
 
 def SijoTabSelectBoxselected(event):
     global gSijoTab1
@@ -80,7 +84,7 @@ def SijoTabSelectBoxselected(event):
 def main():
     global gSijoTab1
     global gTaskListTab
-    global gTab3
+    global gAddTaskTab
     global gCurrentMarketURL
     global gCurrentMarketName
     global gMarketShohinList
@@ -95,18 +99,18 @@ def main():
     main_view.title("Test title")
     
     #メインウィンドウの大きさ設定
-    main_view.geometry("500x500")
+    main_view.geometry("1000x500")
     
     #メインウィンドウにnotebook作成
     nb = ttk.Notebook(main_view)
     
     gSijoTab1 = tkinter.Frame(nb)
     gTaskListTab = tkinter.Frame(nb)
-    gTab3 = tkinter.Frame(nb)
+    gAddTaskTab = tkinter.Frame(nb)
     
     nb.add(gSijoTab1, text="市場", padding=3)
     nb.add(gTaskListTab, text="タスク一覧", padding=3)
-    nb.add(gTab3, text="tab3", padding=3)
+    nb.add(gAddTaskTab, text="タスク追加", padding=3)
     
     #メインフレームでのnotebook配置を決定する。
     nb.pack(expand=1, fill="both")
@@ -114,7 +118,7 @@ def main():
     #各タブの内容を記載する。
     sijoTab_main()
     gTaskListTab_main()
-    tab3_main(gTab3)
+    gAddTaskTab_main()
  
     #main_viewを表示する無限ループ
     main_view.mainloop()
@@ -263,18 +267,22 @@ def gTaskListTab_main():
     
     gTaskListTabTree = ttk.Treeview(gTaskListTab);
 
-    gTaskListTabTree["columns"] = (1, 2, 3, 4)
+    gTaskListTabTree["columns"] = (1, 2, 3, 4, 5, 6)
     gTaskListTabTree["show"] = "headings"
 
     gTaskListTabTree.column(1,width=150)
     gTaskListTabTree.column(2,width=90)
-    gTaskListTabTree.column(3,width=70)
-    gTaskListTabTree.column(4,width=120)
+    gTaskListTabTree.column(3,width=90)
+    gTaskListTabTree.column(4,width=70)
+    gTaskListTabTree.column(5,width=90)
+    gTaskListTabTree.column(6,width=150)
     
     gTaskListTabTree.heading(1,text="タイトル")
-    gTaskListTabTree.heading(2,text="達成回数")
-    gTaskListTabTree.heading(3,text="+")
-    gTaskListTabTree.heading(4,text="タスク操作")
+    gTaskListTabTree.heading(2,text="難易度")
+    gTaskListTabTree.heading(3,text="達成回数")
+    gTaskListTabTree.heading(4,text="+")
+    gTaskListTabTree.heading(5,text="リセット間隔")
+    gTaskListTabTree.heading(6,text="タスク操作")
     
     gTaskListTabTree.place(x=10, y=60)
     
@@ -330,20 +338,31 @@ def DisplayTaskListTab():
     
     lineIdx=0
     for t1 in gTaskList:
-        gTaskListTabTree.insert("","end",values=(t1[0],"", t1[2], ""))    
+
+        nanido = int(t1[1])
+        if nanido == 1:
+           nanidoStr = '小'
+        elif nanido == 2:
+           nanidoStr = '中'
+        elif nanido == 3:
+           nanidoStr = '大'
+        else:
+           nanidoStr = '特大'
+           
+        gTaskListTabTree.insert("","end",values=(t1[0],nanidoStr,"", t1[2], t1[4], ""))    
             # ボタン
         button1 = ttk.Button(
             gTaskListTab,
             text='達成',
             command=addTaskCountCallBack(t1[0]))
-        button1.place(x=170,y=90+30*lineIdx)
+        button1.place(x=250,y=90+30*lineIdx)
         gTaskAddCountButtons.append(button1)
         
         button2 = ttk.Button(
             gTaskListTab,
             text='このタスクを削除',
             command=deleteTaskCallBack(t1[0]))
-        button2.place(x=350,y=90+30*lineIdx)
+        button2.place(x=550,y=90+30*lineIdx)
         gTaskDelButtons.append(button2)
         
         lineIdx = lineIdx + 1
@@ -380,12 +399,100 @@ def deleteTaskCallBack(title):
         
     return deleteTask
      
-def tab3_main(tab3):
+def gAddTaskTab_main():
+    global gAddTaskTab
+    global gNanidoRadioValue
+    global gRisetSpanRadioValue
+    global gAddTaskTabTitleEntry
+    
     #文字を表示する。
-    param_name = tkinter.Label(tab3, text="タブ3の内容")
+    param_name = tkinter.Label(gAddTaskTab, text="タスク追加")
     param_name.place(x=10, y=30)
+    
+    
+    titleLabel = tkinter.Label(gAddTaskTab, text="タスク名:")
+    titleLabel.place(x=10, y=60)
+    
+    
+    gAddTaskTabTitleEntry = tkinter.Entry(gAddTaskTab, width=50)
+    gAddTaskTabTitleEntry.place(x=80, y=60)
+    
+    nanidoLabel = tkinter.Label(gAddTaskTab, text="難易度")
+    nanidoLabel.place(x=10, y=90)
+    
+    gNanidoRadioValue = tkinter.IntVar(master=gAddTaskTab, value=1)
+    rdioSyo = tkinter.Radiobutton(gAddTaskTab, variable = gNanidoRadioValue, text="小", value=1)
+    rdioTyu = tkinter.Radiobutton(gAddTaskTab, variable = gNanidoRadioValue, text="中", value=2)
+    rdioDai = tkinter.Radiobutton(gAddTaskTab, variable = gNanidoRadioValue, text="大", value=3)
+    rdioTokuDai = tkinter.Radiobutton(gAddTaskTab, variable = gNanidoRadioValue, text="特大", value=4)
+    
+    rdioSyo.place(x=10, y=120)
+    rdioTyu.place(x=10, y=150)
+    rdioDai.place(x=10, y=180)
+    rdioTokuDai.place(x=10,y=210)
+    
+    risetSpanLabel = tkinter.Label(gAddTaskTab, text="リセット間隔")
+    risetSpanLabel.place(x=10, y=240)
+    
+    gRisetSpanRadioValue = tkinter.StringVar(master=gAddTaskTab, value="D")
+    rdioD = tkinter.Radiobutton(gAddTaskTab, variable = gRisetSpanRadioValue, text="毎日", value="D")
+    rdioW = tkinter.Radiobutton(gAddTaskTab, variable = gRisetSpanRadioValue, text="毎週", value="W")
+    rdioM = tkinter.Radiobutton(gAddTaskTab, variable = gRisetSpanRadioValue, text="毎月", value="M")
+    rdioY = tkinter.Radiobutton(gAddTaskTab, variable = gRisetSpanRadioValue, text="毎年", value="Y")
+    
+    rdioD.place(x=10, y=270)
+    rdioW.place(x=10, y=300)
+    rdioM.place(x=10, y=330)
+    rdioY.place(x=10,y=360)
+        
+    button1 = ttk.Button(
+        gAddTaskTab,
+        text='タスクを登録',
+        command=registTaskCallBack())
+    button1.place(x=10,y=390)
+    
     return 0
- 
+
+def registTaskCallBack():        
+    
+    def registTask():
+        global gNanidoRadioValue
+        global gRisetSpanRadioValue
+        global gAddTaskTabTitleEntry
+        global gTaskList
+        
+        taskTitle = gAddTaskTabTitleEntry.get()
+        nanidoVal= gNanidoRadioValue.get()
+        risetSpanVal = gRisetSpanRadioValue.get()
+        
+        
+        currentTimeStr = datetime.date.today().strftime('%Y%m%d')
+        
+        task1 = [taskTitle, nanidoVal, 0, currentTimeStr, risetSpanVal]
+        print(task1)
+        gTaskList.append(task1)
+        
+        saveTaskList()
+        
+    return registTask
+
+def saveTaskList():
+    try:
+        URL = os.getcwd()
+        path1 = URL + "\\prop\\TaskData.txt"
+        f = open(path1, encoding='UTF-8', mode='w')
+    except OSError as e:
+        messagebox.showinfo('エラー','ファイルのオープンに失敗しました')
+        return
+    else:
+        for t1 in gTaskList:
+            f.write(','.join(map(str,t1)))
+            f.write('\n')
+        
+        f.close()
+        DisplayTaskListTab()
+
+    return
 if __name__ == "__main__":
     main()
     
