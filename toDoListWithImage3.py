@@ -17,6 +17,7 @@ gSijoTab1 = ''
 gTaskListTab = ''
 gAddTaskTab = ''
 gAddFanitureTab = ''
+gAvatourItemShopTab = ''
 
 
 gCurrentMarketURL=''
@@ -65,29 +66,39 @@ gMyHavingFaniture=[]
 gHavingFanitureListBox=''
 gAddFanitureTabFnImgLabel=''
 
-def calcFanitureSetPoint(height, width):
-	print("height:"+str(height))
-	print("width:"+str(width))
-	return int(int(10) + (height * width) * 0.4)
-	
-	
-def setNeetPtToSetFanitureCallBack():
-	
-	def setNeetPtToSetFaniture():
-		global gPointLabelOnAddFanitureTab
-		global gFnSizeX
-		global gFnSizeY
-		if not getFaniturePosAndSizeEntryVals():
-			return
-			
-		NeedPt = calcFanitureSetPoint(gFnSizeY, gFnSizeX)
-		str1 = "設置に必要なポイント:"+ str(NeedPt)
-		gPointLabelOnAddFanitureTab.configure(text=str1)
+gCurrentAvatourItemShopURL=''
+gCurrentAvatourItemShopName=''
+gAvatourItemShopNameLabel=''
+gAvatourItemListOnAvatourItemShopTab=[]
+gAvatourItemListBoxOnAvatourItemShopTab=''
+gAvatourItemSuishoWidthLabel=''
+gAvatourItemSuishoHeightLabel=''
+gAvatourItemPriceLabel=''
+gAvatourItemShopTabShohinLabel=''
 
-		
-		return
-	
-	return setNeetPtToSetFaniture
+def calcFanitureSetPoint(height, width):
+    print("height:"+str(height))
+    print("width:"+str(width))
+    return int(int(10) + (height * width) * 0.001)
+    
+    
+def setNeetPtToSetFanitureCallBack():
+    
+    def setNeetPtToSetFaniture():
+        global gPointLabelOnAddFanitureTab
+        global gFnSizeX
+        global gFnSizeY
+        if not getFaniturePosAndSizeEntryVals():
+            return
+            
+        NeedPt = calcFanitureSetPoint(gFnSizeY, gFnSizeX)
+        str1 = "設置に必要なポイント:"+ str(NeedPt)
+        gPointLabelOnAddFanitureTab.configure(text=str1)
+
+        
+        return
+    
+    return setNeetPtToSetFaniture
 
 def SijoTabSelectBoxselected(event):
     global gSijoTab1
@@ -135,6 +146,7 @@ def main():
     global gTaskListTab
     global gAddTaskTab
     global gAddFanitureTab
+    global gAvatourItemShopTab
     global gCurrentMarketURL
     global gCurrentMarketName
     global gMarketShohinList
@@ -158,11 +170,13 @@ def main():
     gTaskListTab = tkinter.Frame(nb)
     gAddTaskTab = tkinter.Frame(nb)
     gAddFanitureTab = tkinter.Frame(nb)
+    gAvatourItemShopTab = tkinter.Frame(nb)
     
-    nb.add(gSijoTab1, text="市場", padding=4)
-    nb.add(gTaskListTab, text="タスク一覧", padding=4)
-    nb.add(gAddTaskTab, text="タスク追加", padding=4)
-    nb.add(gAddFanitureTab, text="家具配置", padding=4)
+    nb.add(gSijoTab1, text="市場", padding=5)
+    nb.add(gTaskListTab, text="タスク一覧", padding=5)
+    nb.add(gAddTaskTab, text="タスク追加", padding=5)
+    nb.add(gAddFanitureTab, text="家具配置", padding=5)
+    nb.add(gAvatourItemShopTab, text="アバターアイテムショップ", padding=5)
     
     #メインフレームでのnotebook配置を決定する。
     nb.pack(expand=1, fill="both")
@@ -172,6 +186,7 @@ def main():
     gTaskListTab_main()
     gAddTaskTab_main()
     gAddFanitureTab_main()
+    gAvatourItemShopTab_main()
     
  
     #main_viewを表示する無限ループ
@@ -1082,6 +1097,168 @@ def getFanitureName(sijoURL, fnId):
         
     return name
 
+def gAvatourItemShopTab_main():
+    global gAvatourItemShopTab
+    global gCurrentAvatourItemShopURL
+    global gCurrentAvatourItemShopName
+    global gAvatourItemShopNameLabel
+    global gAvatourItemListOnAvatourItemShopTab
+    global gAvatourItemListBoxOnAvatourItemShopTab
+    global gAvatourItemSuishoWidthLabel
+    global gAvatourItemSuishoHeightLabel
+    global gAvatourItemPriceLabel
+    global gAvatourItemShopTabShohinLabel
+    
+    #文字を表示する。
+    title_name = tkinter.Label(gAvatourItemShopTab, text="アバターアイテムショップ")
+    title_name.place(x=10, y=30)
+    
+    label1 = tkinter.Label(gAvatourItemShopTab, text="アバターアイテムショップURL")
+    label1.place(x=10, y=60)
+    
+    # Text
+    txt = Text(gAvatourItemShopTab, height=1, width=30)
+    txt.insert(1.0, "")
+    txt.place(x=200, y=60)
+    
+    # ボタン
+    button1 = ttk.Button(
+        gAvatourItemShopTab,
+        text='アバターアイテムショップへジャンプ',
+        command=lambda: jumpToAvatourItemShop(txt))
+    button1.place(x=10,y=90)
+    
+    
+    gAvatourItemShopNameLabel = tkinter.Label(gAvatourItemShopTab, text="ショップ名:")
+    gAvatourItemShopNameLabel.place(x=10, y=120)
+    
+    #ListBox
+    gAvatourItemListBoxOnAvatourItemShopTab = Listbox(gAvatourItemShopTab, height=10)
+    gAvatourItemListBoxOnAvatourItemShopTab.place(x=10, y=150)
+    gAvatourItemListBoxOnAvatourItemShopTab.bind('<<ListboxSelect>>',gAvatourItemListBoxOnAvatourItemShopTabSelected);
+    
+    # Scrollbar
+    scrollbar = ttk.Scrollbar(
+        gAvatourItemShopTab,
+        orient=VERTICAL,
+        command=gAvatourItemListBoxOnAvatourItemShopTab.yview)
+    gAvatourItemListBoxOnAvatourItemShopTab['yscrollcommand'] = scrollbar.set
+    scrollbar.place(x=150, y=150, width=30, height=150)
+    
+    img = Image.open("blank.png");
+    img = img.resize((100, 100), Image.ANTIALIAS)
+    img2 = ImageTk.PhotoImage(img)
+    gAvatourItemShopTabShohinLabel = tkinter.Label(gAvatourItemShopTab, image=img2)
+    gAvatourItemShopTabShohinLabel.image = img2
+    gAvatourItemShopTabShohinLabel.place(x=200, y=150)
+    
+    
+    gAvatourItemSuishoHeightLabel = tkinter.Label(gAvatourItemShopTab, text="推奨高さ:")
+    gAvatourItemSuishoHeightLabel.place(x=200, y=260)
+    
+    gAvatourItemSuishoWidthLabel = tkinter.Label(gAvatourItemShopTab, text="推奨幅:")
+    gAvatourItemSuishoWidthLabel.place(x=200, y=290)
+    
+    gAvatourItemPriceLabel = tkinter.Label(gAvatourItemShopTab, text="購入に必要なポイント:")
+    gAvatourItemPriceLabel.place(x=200, y=320)
+    
+    return 0
+
+def gAvatourItemListBoxOnAvatourItemShopTabSelected(event):
+    global gAvatourItemShopTab
+    global gCurrentAvatourItemShopURL
+    global gCurrentAvatourItemShopName
+    global gAvatourItemShopNameLabel
+    global gAvatourItemListOnAvatourItemShopTab
+    global gAvatourItemListBoxOnAvatourItemShopTab
+    global gAvatourItemSuishoWidthLabel
+    global gAvatourItemSuishoHeightLabel
+    global gAvatourItemPriceLabel
+    global gAvatourItemShopTabShohinLabel
+   
+    if not gAvatourItemListBoxOnAvatourItemShopTab.curselection():
+        return 
+    crSelectIdx = gAvatourItemListBoxOnAvatourItemShopTab.curselection()[0];
+
+    
+    var1 = gAvatourItemListBoxOnAvatourItemShopTab.get(crSelectIdx)
+    imgURL = gCurrentAvatourItemShopURL + '\\' + gAvatourItemListOnAvatourItemShopTab[crSelectIdx][2]
+    img = Image.open(imgURL);
+    img = img.resize((100, 100), Image.ANTIALIAS)
+    img2 = ImageTk.PhotoImage(img)
+    gAvatourItemShopTabShohinLabel.configure(image=img2)
+    gAvatourItemShopTabShohinLabel.image = img2
+    gAvatourItemShopTabShohinLabel.place(x=200, y=150)
+    
+    
+    im2 = cv2.imread(imgURL)
+    sh, sw, c = im2.shape;
+    
+    str1 = "推奨高さ:"+ str(sh);
+    gAvatourItemSuishoHeightLabel.configure(text=str1);
+    
+    str1 = "推奨幅:"+ str(sw);
+    gAvatourItemSuishoWidthLabel.configure(text=str1);
+    
+    str1 = "購入に必要なポイント:" + str(gAvatourItemListOnAvatourItemShopTab[crSelectIdx][3])
+    gAvatourItemPriceLabel.configure(text=str1);
+
+
+def jumpToAvatourItemShop(textBox1):
+    result=textBox1.get("1.0", "end")
+    result = result.rstrip('\n')
+    
+    loadAvatourItemShopData(result)
+    
+    DisplayAvatourItemShopData();
+
+def loadAvatourItemShopData(URL):
+    global gAvatourItemShopTab
+    global gCurrentAvatourItemShopURL
+    global gCurrentAvatourItemShopName
+    global gAvatourItemListOnAvatourItemShopTab
+    global gAvatourItemListBoxOnAvatourItemShopTab
+    global gAvatourItemShopNameLabel
+
+    path1 = URL + '\AvatourItemShopInfo.txt'
+    
+    try:
+        f = open(path1, encoding='UTF-8')
+    except OSError as e:
+        messagebox.showinfo('エラー','URLが違っています')
+        return
+    else:
+        gCurrentAvatourItemShopURL = URL;
+        lines = f.readlines()
+        gCurrentAvatourItemShopName=lines[0].split(',')[1];
+        lines.pop(0);
+        
+        str1 = "アバターアイテムショップ名:"+gCurrentAvatourItemShopName;
+        gAvatourItemShopNameLabel.configure(text=str1);
+        
+        gAvatourItemListOnAvatourItemShopTab = [];
+        for line in lines:
+            line = line.rstrip('\n')
+            vars = line.split(',');
+            gAvatourItemListOnAvatourItemShopTab.append(vars) 
+        
+        f.close()
+        
+    return
+    
+def DisplayAvatourItemShopData():
+    global gAvatourItemShopTab
+    global gCurrentAvatourItemShopURL
+    global gCurrentAvatourItemShopName
+    global gAvatourItemListOnAvatourItemShopTab
+    global gAvatourItemListBoxOnAvatourItemShopTab
+    
+    gAvatourItemListBoxOnAvatourItemShopTab.delete(0, tkinter.END);
+    
+    for s1 in gAvatourItemListOnAvatourItemShopTab:
+        gAvatourItemListBoxOnAvatourItemShopTab.insert(tkinter.END, s1[1])
+        
+    return
 if __name__ == "__main__":
     main()
     
