@@ -1,0 +1,2 @@
+C:\Users\81805\Desktop\python\toDoListWithImage\AbatourItemShop1,1,30,30,50,50
+C:\Users\81805\Desktop\python\toDoListWithImage\AbatourItemShop2,2,30,50,50,50
