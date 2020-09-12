@@ -79,6 +79,7 @@ gAvatourItemShopTabShohinLabel=''
 
 gAvatourImg=''
 gCurrentAvatourImg=''
+gCurrentPreviewAvatourImg=''
 gAddAvatourItemTabPosXEntry=''
 gAddAvatourItemTabPosYEntry=''
 gAddAvatourItemTabPosZEntry=''
@@ -87,8 +88,21 @@ gAddAvatourItemTabSizeYEntry=''
 gHavingAvatourItemListBox=''
 gMyHavingAvatourItem=[]
 gMyAvatourItem=[]
+gMyAvatourPrev=[]
 gAddAvatorItemTabItmImgLabel=''
 gPointLabelOnAddAvatourItemTab=''
+
+
+gAvatourBlankType=1
+gAvatourWidth=100
+gAvatourHeight=150
+gAvatourItmPosX=''
+gAvatourItmPosY=''
+gAvatourItmPosZ=''
+gAvatourItmSizeX=''
+gAvatourItmSizeY=''
+
+
 
 def calcFanitureSetPoint(height, width):
     print("height:"+str(height))
@@ -869,12 +883,12 @@ def AddImage(img1, img2, sx, sy, size_y, size_x):
     
     im1h, im1w, im1c = img1.shape;
     
-    img3 = cv2.resize(img2, (size_y, size_x) )
+    img3 = cv2.resize(img2, (size_x, size_y) )
     
     out_img = cv2.imread("blank.png")
     out_img = cv2.resize(out_img,(im1w, im1h))
 
-	
+    
     width = im1w
     height = im1h
     print("---")
@@ -882,7 +896,7 @@ def AddImage(img1, img2, sx, sy, size_y, size_x):
     print(im1h)
     print("---")
     for y in range(height):
-        for x in range(width):        	
+        for x in range(width):            
             out_img[y, x] = img1[y, x]
             if isInRect(x, y, sx, sy, size_x, size_y) == True:
                 pixelValue = img3[y-sy, x-sx]
@@ -1202,11 +1216,12 @@ def gAvatourItemListBoxOnAvatourItemShopTabSelected(event):
     global gAvatourItemPriceLabel
     global gAvatourItemShopTabShohinLabel
    
+    print(gAvatourItemListBoxOnAvatourItemShopTab.curselection())
     if not gAvatourItemListBoxOnAvatourItemShopTab.curselection():
         return 
     crSelectIdx = gAvatourItemListBoxOnAvatourItemShopTab.curselection()[0];
 
-    
+
     var1 = gAvatourItemListBoxOnAvatourItemShopTab.get(crSelectIdx)
     imgURL = gCurrentAvatourItemShopURL + '\\' + gAvatourItemListOnAvatourItemShopTab[crSelectIdx][2]
     img = Image.open(imgURL);
@@ -1271,7 +1286,7 @@ def loadAvatourItemShopData(URL):
         f.close()
         
     return
-    
+   
 def DisplayAvatourItemShopData():
     global gAvatourItemShopTab
     global gCurrentAvatourItemShopURL
@@ -1285,7 +1300,29 @@ def DisplayAvatourItemShopData():
         gAvatourItemListBoxOnAvatourItemShopTab.insert(tkinter.END, s1[1])
         
     return
+
+def gAvatourItemListBoxOnAddAvatourItmSelected(event):
+    global gAddAvatourItemTab
+    global gHavingAvatourItemListBox
+    global gMyHavingAvatourItem
+    global gAddAvatorItemTabItmImgLabel
     
+    if not gHavingAvatourItemListBox.curselection():
+        return 
+    crSelectIdx = gHavingAvatourItemListBox.curselection()[0];
+
+    imgURL = getAvatourItemImgURL(gMyHavingAvatourItem[crSelectIdx][0], gMyHavingAvatourItem[crSelectIdx][1])
+    img = Image.open(imgURL);
+    img = img.resize((100, 100), Image.ANTIALIAS)
+    img2 = ImageTk.PhotoImage(img)
+    gAddAvatorItemTabItmImgLabel.configure(image=img2)
+    gAddAvatorItemTabItmImgLabel.image = img2
+    gAddAvatorItemTabItmImgLabel.place(x=300, y=50)
+    
+    im2 = cv2.imread(imgURL)
+    sh, sw, c = im2.shape;
+
+    return 0     
 def gAddAvatourItemTab_main():
     global gAddAvatourItemTab
     global gAvatourImg
@@ -1298,6 +1335,7 @@ def gAddAvatourItemTab_main():
     global gMyHavingAvatourItem
     global gAddAvatorItemTabItmImgLabel
     global gPointLabelOnAddAvatourItemTab
+    global gHavingAvatourItemListBox
     
     
     #文字を表示する。
@@ -1305,9 +1343,9 @@ def gAddAvatourItemTab_main():
     param_name.place(x=10, y=30)
 
     #ListBox
-    gHavingAvatourItemListBox = Listbox(gAddFanitureTab, height=10)
+    gHavingAvatourItemListBox = Listbox(gAddAvatourItemTab, height=10)
     gHavingAvatourItemListBox.place(x=10, y=60)
-    gHavingAvatourItemListBox.bind('<<ListboxSelect>>',gHavingFanitureListBoxSelected);
+    gHavingAvatourItemListBox.bind('<<ListboxSelect>>',gAvatourItemListBoxOnAddAvatourItmSelected);
     
     LoadHavingAvatourItem()
     
@@ -1315,7 +1353,6 @@ def gAddAvatourItemTab_main():
     for hFn in gMyHavingAvatourItem:
         gHavingAvatourItemListBox.insert(tkinter.END, hFn[2])
         
-    
     # Scrollbar
     scrollbar = ttk.Scrollbar(
         gAddAvatourItemTab,
@@ -1369,7 +1406,7 @@ def gAddAvatourItemTab_main():
     gAddAvatorItemTabItmImgLabel.place(x=300, y=50)
     
         
-    DisplayAvatour(100,150,1)
+    DisplayAvatour(100,150)
     
     button1 = ttk.Button(
         gAddAvatourItemTab,
@@ -1377,21 +1414,146 @@ def gAddAvatourItemTab_main():
         command=DisplayAvatourItemPreViewCallBack())
     button1.place(x=10,y=240)
     
-    button1 = ttk.Button(
+    button2 = ttk.Button(
         gAddAvatourItemTab,
         text='40pt使ってアイテム装備',
         command=setItemCallBack())
-    button1.place(x=10,y=270)
-    
-
+    button2.place(x=10,y=270)
     
     return 0
+def DisplayAvatourItemPreViewCallBack():
+    
+    def DisplayAvatourItemPreView():
+    
+        global gCurrentPreviewAvatourImg
+        global gAvatourWidth
+        global gAvatourHeight
+        global gAvatourItmPosX
+        global gAvatourItmPosY
+        global gAvatourItmSizeX
+        global gAvatourItmSizeY
+        global gAddAvatourItemTab
+        global gHavingAvatourItemListBox
+        global gMyHavingAvatourItem
+        global gAddAvatorItemTabItmImgLabel
+        global gMyAvatourItem
+        global gMyAvatourPrev
+        global gAvatourBlankType
+    
+        if not gHavingAvatourItemListBox.curselection():
+            return 
+        crSelectIdx = gHavingAvatourItemListBox.curselection()[0];
 
-def DisplayAvatour(avatourWidth, avatourHeight, blankType):
+        if not getAvatourItemPosAndSizeEntryVals():
+            return
+            
+        gMyAvatourPrev = gMyAvatourItem.copy()
+
+        
+        val1 = [gMyHavingAvatourItem[crSelectIdx][0], gMyHavingAvatourItem[crSelectIdx][1], gAvatourItmPosX, gAvatourItmPosY, gAvatourItmPosZ, gAvatourItmSizeY, gAvatourItmSizeX]
+        gMyAvatourPrev.append(val1)
+
+        print(gMyAvatourPrev)
+        gMyAvatourPrev = sorted(gMyAvatourPrev, reverse=False, key=lambda x:x[4])
+        
+        if gAvatourBlankType == 1:
+            avatourImg = cv2.imread("AvatourBlank1.png")
+        else:
+            avatourImg = cv2.imread("AvatourBlank2.png")
+                      
+        avatourImg = cv2.resize(avatourImg, (gAvatourWidth, gAvatourHeight) )
+        
+        for fn in gMyAvatourPrev:
+            fnURL = getAvatourItemImgURL(fn[0], fn[1])
+            fnImg = cv2.imread(fnURL)
+            avatourImg = AddImage(avatourImg, fnImg, fn[2], fn[3], fn[5], fn[6])
+        
+        gCurrentPreviewRoomImg = avatourImg
+
+        cv2.imshow("previewAvatour", avatourImg)
+        
+        return
+    
+    return DisplayAvatourItemPreView
+
+def getAvatourItemPosAndSizeEntryVals():
+    global gAvatourItmPosX
+    global gAvatourItmPosY
+    global gAvatourItmPosZ
+    global gAvatourItmSizeX
+    global gAvatourItmSizeY
+    global gAddFanitureTab
+    global gAvatourImg
+    global gAddAvatourItemTabPosXEntry
+    global gAddAvatourItemTabPosYEntry
+    global gAddAvatourItemTabPosZEntry
+    global gAddAvatourItemTabSizeXEntry
+    global gAddAvatourItemTabSizeYEntry
+        
+    gAvatourItmPosX = 0
+    gAvatourItmPosY = 0
+    gAvatourItmPosZ = 0
+    gAvatourItmSizeX = 0
+    gAvatourItmSizeY = 0
+    
+    NStr1 = gAddAvatourItemTabPosXEntry.get()
+    if not NStr1.isdecimal():
+        return False
+    else :
+        Num = int(NStr1)
+        if Num < 0:
+            return False
+        else:
+            gAvatourItmPosX = Num
+            
+    NStr2 = gAddAvatourItemTabPosYEntry.get()
+    if not NStr2.isdecimal():
+        return False
+    else :
+        Num = int(NStr2)
+        if Num < 0:
+            return False
+        else:
+            gAvatourItmPosY = Num
+            
+    NStr5 = gAddAvatourItemTabPosZEntry.get()
+    if not NStr5.isdecimal():
+        return False
+    else :
+        Num = int(NStr5)
+        if Num < 0:
+            return False
+        else:
+            gAvatourItmPosZ = Num            
+            
+    NStr3 = gAddAvatourItemTabSizeXEntry.get()
+    if not NStr3.isdecimal():
+        return False
+    else :
+        Num = int(NStr3)
+        if Num <= 0:
+            return False
+        else:
+            gAvatourItmSizeX = Num
+            
+    NStr4 = gAddAvatourItemTabSizeYEntry.get()
+    if not NStr4.isdecimal():
+        return False
+    else :
+        Num = int(NStr4)
+        if Num <= 0:
+            return False
+        else:
+            gAvatourItmSizeY = Num
+        
+    return True
+    
+def DisplayAvatour(avatourWidth, avatourHeight):
+    global gAvatourBlankType
     global gMyAvatourItem
     global gCurrentAvatourImg
     
-    if blankType == 1:
+    if gAvatourBlankType == 1:
         avatourImg = cv2.imread("AvatourBlank1.png")
     else:
         avatourImg = cv2.imread("AvatourBlank2.png")
@@ -1499,13 +1661,6 @@ def getAvatourItemName(avatourShopURL, itmId):
         
     return name
 
-    
-def DisplayAvatourItemPreViewCallBack():
-
-    def DisplayAvatourItemPreView():
-        return 0
-        
-    return DisplayAvatourItemPreView
 
 #現在装備しているアバターアイテムのリストをロードする    
 def LoadAvatour():
