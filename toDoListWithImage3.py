@@ -18,6 +18,7 @@ gTaskListTab = ''
 gAddTaskTab = ''
 gAddFanitureTab = ''
 gAvatourItemShopTab = ''
+gAddAvatourItemTab = ''
 
 
 gCurrentMarketURL=''
@@ -75,6 +76,19 @@ gAvatourItemSuishoWidthLabel=''
 gAvatourItemSuishoHeightLabel=''
 gAvatourItemPriceLabel=''
 gAvatourItemShopTabShohinLabel=''
+
+gAvatourImg=''
+gCurrentAvatourImg=''
+gAddAvatourItemTabPosXEntry=''
+gAddAvatourItemTabPosYEntry=''
+gAddAvatourItemTabPosZEntry=''
+gAddAvatourItemTabSizeXEntry=''
+gAddAvatourItemTabSizeYEntry=''
+gHavingAvatourItemListBox=''
+gMyHavingAvatourItem=[]
+gMyAvatourItem=[]
+gAddAvatorItemTabItmImgLabel=''
+gPointLabelOnAddAvatourItemTab=''
 
 def calcFanitureSetPoint(height, width):
     print("height:"+str(height))
@@ -147,6 +161,7 @@ def main():
     global gAddTaskTab
     global gAddFanitureTab
     global gAvatourItemShopTab
+    global gAddAvatourItemTab
     global gCurrentMarketURL
     global gCurrentMarketName
     global gMarketShohinList
@@ -171,12 +186,14 @@ def main():
     gAddTaskTab = tkinter.Frame(nb)
     gAddFanitureTab = tkinter.Frame(nb)
     gAvatourItemShopTab = tkinter.Frame(nb)
+    gAddAvatourItemTab = tkinter.Frame(nb)
     
     nb.add(gSijoTab1, text="市場", padding=5)
     nb.add(gTaskListTab, text="タスク一覧", padding=5)
     nb.add(gAddTaskTab, text="タスク追加", padding=5)
     nb.add(gAddFanitureTab, text="家具配置", padding=5)
     nb.add(gAvatourItemShopTab, text="アバターアイテムショップ", padding=5)
+    nb.add(gAddAvatourItemTab, text="アバターアイテム追加", padding=5)
     
     #メインフレームでのnotebook配置を決定する。
     nb.pack(expand=1, fill="both")
@@ -187,6 +204,7 @@ def main():
     gAddTaskTab_main()
     gAddFanitureTab_main()
     gAvatourItemShopTab_main()
+    gAddAvatourItemTab_main()
     
  
     #main_viewを表示する無限ループ
@@ -555,7 +573,7 @@ def registTaskCallBack():
 def saveTaskList():
     try:
         URL = os.getcwd()
-        path1 = URL + "\\prop\\TaskData.txt"
+        path1 = URL + "\\prop\    askData.txt"
         f = open(path1, encoding='UTF-8', mode='w')
     except OSError as e:
         messagebox.showinfo('エラー','ファイルのオープンに失敗しました')
@@ -819,6 +837,7 @@ def setFanitureCallBack():
 
         test1 = cv2.imread("test1.png")
         out1 = AddImage(gRoomImg, test1, PosX, PosY, SizeY, SizeX)
+        cv2.namedWindow("room", cv2.WINDOW_NORMAL)
         cv2.imshow("room",out1)
         
         return 1
@@ -848,16 +867,22 @@ def AddImage(img1, img2, sx, sy, size_y, size_x):
     elif size_x <= 0:
         return img1
     
-    im1w, im1h, im1c = img1.shape;
+    im1h, im1w, im1c = img1.shape;
     
-    img3 = cv2.resize(img2, (size_x, size_y) )
+    img3 = cv2.resize(img2, (size_y, size_x) )
     
     out_img = cv2.imread("blank.png")
     out_img = cv2.resize(out_img,(im1w, im1h))
 
-    width, height, channel = out_img.shape;
+	
+    width = im1w
+    height = im1h
+    print("---")
+    print(im1w)
+    print(im1h)
+    print("---")
     for y in range(height):
-        for x in range(width):
+        for x in range(width):        	
             out_img[y, x] = img1[y, x]
             if isInRect(x, y, sx, sy, size_x, size_y) == True:
                 pixelValue = img3[y-sy, x-sx]
@@ -961,6 +986,7 @@ def DisplayRoom(roomWidth, roomHeight):
     gCurrentRoomImg = roomImg
 
     cv2.imshow("room", roomImg)
+    cv2.moveWindow('room', 100, 200)
     return
     
 def getFanitureImgURL(sijoURL, fnId):
@@ -1259,6 +1285,277 @@ def DisplayAvatourItemShopData():
         gAvatourItemListBoxOnAvatourItemShopTab.insert(tkinter.END, s1[1])
         
     return
+    
+def gAddAvatourItemTab_main():
+    global gAddAvatourItemTab
+    global gAvatourImg
+    global gAddAvatourItemTabPosXEntry
+    global gAddAvatourItemTabPosYEntry
+    global gAddAvatourItemTabPosZEntry
+    global gAddAvatourItemTabSizeXEntry
+    global gAddAvatourItemTabSizeYEntry
+    global gHavingAvatourItemListBox
+    global gMyHavingAvatourItem
+    global gAddAvatorItemTabItmImgLabel
+    global gPointLabelOnAddAvatourItemTab
+    
+    
+    #文字を表示する。
+    param_name = tkinter.Label(gAddAvatourItemTab, text="アバターアイテム追加")
+    param_name.place(x=10, y=30)
+
+    #ListBox
+    gHavingAvatourItemListBox = Listbox(gAddFanitureTab, height=10)
+    gHavingAvatourItemListBox.place(x=10, y=60)
+    gHavingAvatourItemListBox.bind('<<ListboxSelect>>',gHavingFanitureListBoxSelected);
+    
+    LoadHavingAvatourItem()
+    
+    gHavingAvatourItemListBox.delete(0, tkinter.END);
+    for hFn in gMyHavingAvatourItem:
+        gHavingAvatourItemListBox.insert(tkinter.END, hFn[2])
+        
+    
+    # Scrollbar
+    scrollbar = ttk.Scrollbar(
+        gAddAvatourItemTab,
+        orient=VERTICAL,
+        command=gHavingAvatourItemListBox.yview)
+    gHavingAvatourItemListBox['yscrollcommand'] = scrollbar.set
+    scrollbar.place(x=150, y=60, width=30, height=150)
+    
+    posLabel = tkinter.Label(gAddAvatourItemTab, text="配置位置")
+    posLabel.place(x=200, y=60)
+    
+    posLabel2 = tkinter.Label(gAddAvatourItemTab, text="x位置:")
+    posLabel2.place(x=200, y=90)
+    gAddAvatourItemTabPosXEntry = tkinter.Entry(gAddAvatourItemTab, width=4)
+    gAddAvatourItemTabPosXEntry.place(x=240, y=90)
+    gAddAvatourItemTabPosXEntry.insert(0, "0")
+    
+    posLabel3 = tkinter.Label(gAddAvatourItemTab, text="y位置:")
+    posLabel3.place(x=200, y=120)
+    gAddAvatourItemTabPosYEntry = tkinter.Entry(gAddAvatourItemTab, width=4)
+    gAddAvatourItemTabPosYEntry.place(x=240, y=120)
+    gAddAvatourItemTabPosYEntry.insert(0, "0")
+    
+
+    posLabel4 = tkinter.Label(gAddAvatourItemTab, text="z位置:")
+    posLabel4.place(x=200, y=150)
+    gAddAvatourItemTabPosZEntry = tkinter.Entry(gAddAvatourItemTab, width=4)
+    gAddAvatourItemTabPosZEntry.place(x=240, y=150)
+    gAddAvatourItemTabPosZEntry.insert(0, "0")
+        
+    sizeLabel = tkinter.Label(gAddAvatourItemTab, text="大きさ")
+    sizeLabel.place(x=200, y=180)
+    
+    sizeLabel2 = tkinter.Label(gAddAvatourItemTab, text="高さ:")
+    sizeLabel2.place(x=200, y=210)
+    gAddAvatourItemTabSizeYEntry = tkinter.Entry(gAddAvatourItemTab, width=4)
+    gAddAvatourItemTabSizeYEntry.place(x=240, y=210)
+    gAddAvatourItemTabSizeYEntry.insert(0, "0")
+        
+    sizeLabel3 = tkinter.Label(gAddAvatourItemTab, text="幅:")
+    sizeLabel3.place(x=200, y=240)
+    gAddAvatourItemTabSizeXEntry = tkinter.Entry(gAddAvatourItemTab, width=4)
+    gAddAvatourItemTabSizeXEntry.place(x=240, y=240)
+    gAddAvatourItemTabSizeXEntry.insert(0, "0")
+    
+    img = Image.open("blank.png");
+    img = img.resize((100, 100), Image.ANTIALIAS)
+    img2 = ImageTk.PhotoImage(img)
+    gAddAvatorItemTabItmImgLabel = tkinter.Label(gAddAvatourItemTab, image=img2)
+    gAddAvatorItemTabItmImgLabel.image = img2
+    gAddAvatorItemTabItmImgLabel.place(x=300, y=50)
+    
+        
+    DisplayAvatour(100,150,1)
+    
+    button1 = ttk.Button(
+        gAddAvatourItemTab,
+        text='プレビュー',
+        command=DisplayAvatourItemPreViewCallBack())
+    button1.place(x=10,y=240)
+    
+    button1 = ttk.Button(
+        gAddAvatourItemTab,
+        text='40pt使ってアイテム装備',
+        command=setItemCallBack())
+    button1.place(x=10,y=270)
+    
+
+    
+    return 0
+
+def DisplayAvatour(avatourWidth, avatourHeight, blankType):
+    global gMyAvatourItem
+    global gCurrentAvatourImg
+    
+    if blankType == 1:
+        avatourImg = cv2.imread("AvatourBlank1.png")
+    else:
+        avatourImg = cv2.imread("AvatourBlank2.png")
+      
+    avatourImg = cv2.resize(avatourImg, (avatourWidth, avatourHeight) )
+    LoadAvatour()
+
+    for fn in gMyAvatourItem:
+        fnURL = getAvatourItemImgURL(fn[0], fn[1])
+        fnImg = cv2.imread(fnURL)
+        print(fn)
+        avatourImg = AddImage(avatourImg, fnImg, fn[2], fn[3], fn[5], fn[6])
+    
+    gCurrentAvatourImg = avatourImg
+
+    cv2.namedWindow("avatour", cv2.WINDOW_NORMAL)
+    cv2.imshow("avatour", avatourImg)
+    cv2.moveWindow('avatour', 200, 200)
+    
+    return
+
+def getAvatourItemImgURL(avatourItemShopURL, itmId):
+    path1 = avatourItemShopURL + '\AvatourItemShopInfo.txt'
+    
+    path2 = ""
+    try:
+        f = open(path1, encoding='UTF-8')
+    except OSError as e:
+        return
+    else:
+        lines = f.readlines()
+        #最初の一行目読み飛ばし
+        lines.pop(0);
+        
+        for line in lines:
+            line = line.rstrip('\n')
+            vars = line.split(',');
+            id = int(vars[0])
+            if id == itmId:
+                path2 = avatourItemShopURL + "\\" + vars[2]
+                break
+        
+        f.close()
+        
+    return path2
+    
+def LoadHavingAvatourItem():
+    global gMyHavingAvatourItem
+    
+    URL = os.getcwd()
+    path1 = URL + '\prop\MyHavingAvatourItem.txt'
+    print(path1)
+    
+    try:
+        f = open(path1, encoding='UTF-8')
+    except OSError as e:
+        messagebox.showinfo('エラー','所持中アバターアイテムリストファイルがありません')
+        return
+    else:
+        lines = f.readlines()
+        
+        gMyHavingAvatourItem = [];
+        for line in lines:
+            line = line.rstrip('\n')
+            vars = line.split(',');
+            #市場URL,商品ID
+            gMyHavingAvatourItem.append(vars) 
+        
+        f.close()
+        
+        for fn1 in gMyHavingAvatourItem:
+            v1 = int(fn1[1])
+            fn1[1] = v1
+            name1 = getAvatourItemName(fn1[0], fn1[1])
+            fn1.append(name1)
+            print(fn1)
+        
+        #市場URL,商品ID,商品名
+        gMyHavingAvatourItem = sorted(gMyHavingAvatourItem, reverse=False, key=lambda x:x[2])
+        
+    return
+    
+def getAvatourItemName(avatourShopURL, itmId):
+    path1 = avatourShopURL + '\AvatourItemShopInfo.txt'
+    
+    path2 = ""
+    try:
+        f = open(path1, encoding='UTF-8')
+    except OSError as e:
+        return
+    else:
+        lines = f.readlines()
+        #最初の一行目読み飛ばし
+        lines.pop(0);
+        
+        for line in lines:
+            line = line.rstrip('\n')
+            vars = line.split(',');
+            id = int(vars[0])
+            if id == itmId:
+                name = vars[1]
+                break
+        
+        f.close()
+        
+    return name
+
+    
+def DisplayAvatourItemPreViewCallBack():
+
+    def DisplayAvatourItemPreView():
+        return 0
+        
+    return DisplayAvatourItemPreView
+
+#現在装備しているアバターアイテムのリストをロードする    
+def LoadAvatour():
+    global gMyAvatourItem
+    
+    URL = os.getcwd()
+    path1 = URL + '\prop\MyAvatour.txt'
+    
+    try:
+        f = open(path1, encoding='UTF-8')
+    except OSError as e:
+        messagebox.showinfo('エラー','装備中アバターアイテムデータがありません')
+        return
+    else:
+        lines = f.readlines()
+        
+        gMyAvatourItem = [];
+        for line in lines:
+            line = line.rstrip('\n')
+            vars = line.split(',');
+            #市場URL,商品ID,x位置,y位置,z位置,高さ,幅
+            gMyAvatourItem.append(vars) 
+        
+        f.close()
+        
+        for fn1 in gMyAvatourItem:
+            v1 = int(fn1[1])
+            v2 = int(fn1[2])
+            v3 = int(fn1[3])
+            v4 = int(fn1[4])
+            v5 = int(fn1[5])
+            v6 = int(fn1[6])
+            fn1[1] = v1
+            fn1[2] = v2
+            fn1[3] = v3
+            fn1[4] = v4
+            fn1[5] = v5
+            fn1[6] = v6
+        
+        gMyAvatourItem = sorted(gMyAvatourItem, reverse=False, key=lambda x:x[4])
+        
+        
+    return
+    
+def setItemCallBack():
+
+    def setItem():
+        return 0
+        
+    return setItem
 if __name__ == "__main__":
     main()
     
