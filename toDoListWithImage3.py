@@ -12,7 +12,15 @@ import datetime
 
 gRoomWidth = 300
 gRoomHeight = 300
+gAvatourBlankType=1
+gAvatourWidth=100
+gAvatourHeight=150
+gAvatourPosX = 0
+gAvatourPosY = 0
 
+gCurrentToDoTaskPoint = 100
+gCurrentToDoTaskPointStrLabel=''
+gGetTaskPointVols=[10,20,30,40]
 
 #タブリスト
 gSijoTab1 = ''
@@ -23,6 +31,7 @@ gAvatourItemShopTab = ''
 gAddAvatourItemTab = ''
 gDeleteFanitureTab = ''
 gDeleteAvatourItemTab = ''
+gShowCurrentToDoTaskPointTab = ''
 
 
 gCurrentMarketURL=''
@@ -38,7 +47,7 @@ gSijoTabSuishoHeightLabel=''
 gSijoTabPriceLabel=''
 
 gTaskDataURL=''
-gGetExpVols=[10,20,30,40]
+#タイトル,難易度,達成回数,リセット日時,リセット間隔(D,W,M,Y)
 gTaskList = [];
 gTaskAddCountButtons = [];
 gTaskDelButtons = [];
@@ -55,6 +64,8 @@ gAddFanitureTabPosZEntry=''
 gAddFanitureTabSizeXEntry=''
 gAddFanitureTabSizeYEntry=''
 
+
+#市場URL,商品ID,x位置,y位置,z位置,高さ,幅
 gMyFaniture=[];
 gMyAddFaniturePrev=[];
 gMyDelFaniturePrev=[];
@@ -68,6 +79,7 @@ gFnSizeX = ''
 gFnSizeY = ''
 
 
+#市場URL,商品ID,名前
 gMyHavingFaniture=[]
 gSearchedHavingFaniture=[]
 gHavingFanitureListBox=''
@@ -92,16 +104,15 @@ gAddAvatourItemTabPosZEntry=''
 gAddAvatourItemTabSizeXEntry=''
 gAddAvatourItemTabSizeYEntry=''
 gHavingAvatourItemListBox=''
+#アバターショップURL,アイテムID,名前
 gMyHavingAvatourItem=[]
+#市場URL,アバターアイテムID,x位置,y位置,z位置,高さ,幅
 gMyAvatourItem=[]
 gMyAvatourPrev=[]
 gAddAvatorItemTabItmImgLabel=''
 gPointLabelOnAddAvatourItemTab=''
 
 
-gAvatourBlankType=1
-gAvatourWidth=100
-gAvatourHeight=150
 gAvatourItmPosX=''
 gAvatourItmPosY=''
 gAvatourItmPosZ=''
@@ -119,7 +130,7 @@ gDeleteAvatourItemTabTree=''
 def calcFanitureSetPoint(height, width):
     print("height:"+str(height))
     print("width:"+str(width))
-    return int(int(10) + (height * width) * 0.001)
+    return int(int(30) + (height * width) * 0.001)
     
     
 def setNeetPtToSetFanitureCallBack():
@@ -135,7 +146,6 @@ def setNeetPtToSetFanitureCallBack():
         str1 = "設置に必要なポイント:"+ str(NeedPt)
         gPointLabelOnAddFanitureTab.configure(text=str1)
 
-        
         return
     
     return setNeetPtToSetFaniture
@@ -152,6 +162,7 @@ def SijoTabSelectBoxselected(event):
     global gSijoTabSuishoWidthLabel
     global gSijoTabSuishoHeightLabel
     global gSijoTabPriceLabel
+    global gToDoTaskPoint
    
     if not gSijoTabSelectBox.curselection():
         return 
@@ -179,8 +190,7 @@ def SijoTabSelectBoxselected(event):
     
     str1 = "購入に必要なポイント:" + str(gMarketShohinList[crSelectIdx][3])
     gSijoTabPriceLabel.configure(text=str1);
-
-
+    
 def main():
     global gSijoTab1
     global gTaskListTab
@@ -190,6 +200,7 @@ def main():
     global gAddAvatourItemTab
     global gDeleteFanitureTab
     global gDeleteAvatourItemTab
+    global gShowCurrentToDoTaskPointTab
     global gCurrentMarketURL
     global gCurrentMarketName
     global gMarketShohinList
@@ -217,15 +228,18 @@ def main():
     gAddAvatourItemTab = tkinter.Frame(nb)
     gDeleteFanitureTab = tkinter.Frame(nb)
     gDeleteAvatourItemTab = tkinter.Frame(nb)
+    gShowCurrentToDoTaskPointTab = tkinter.Frame(nb)
     
-    nb.add(gSijoTab1, text="市場", padding=5)
+
     nb.add(gTaskListTab, text="タスク一覧", padding=5)
     nb.add(gAddTaskTab, text="タスク追加", padding=5)
+    nb.add(gSijoTab1, text="市場", padding=5)
     nb.add(gAddFanitureTab, text="家具配置", padding=5)
+    nb.add(gDeleteFanitureTab, text="家具削除", padding=5)
     nb.add(gAvatourItemShopTab, text="アバターアイテムショップ", padding=5)
     nb.add(gAddAvatourItemTab, text="アバターアイテム追加", padding=5)
-    nb.add(gDeleteFanitureTab, text="家具削除", padding=5)
     nb.add(gDeleteAvatourItemTab, text="アバターアイテム削除", padding=5)
+    nb.add(gShowCurrentToDoTaskPointTab, text="現在の保有ポイント", padding=5)
     
     #メインフレームでのnotebook配置を決定する。
     nb.pack(expand=1, fill="both")
@@ -239,6 +253,7 @@ def main():
     gAddAvatourItemTab_main()
     gDeleteFanitureTab_main()
     gDeleteAvatourItemTab_main()
+    gShowCurrentToDoTaskPointTab_main()
     
  
     #main_viewを表示する無限ループ
@@ -313,7 +328,85 @@ def sijoTab_main():
     gSijoTabPriceLabel = tkinter.Label(gSijoTab1, text="購入に必要なポイント:")
     gSijoTabPriceLabel.place(x=200, y=320)
     
+    button2 = ttk.Button(
+        gSijoTab1,
+        text='購入',
+        command=parchaseFanitureCallBack())
+    button2.place(x=200,y=350)
+
     return 0
+    
+def addHavingFaniture(sijoURL, fnId):
+    global gMyHavingFaniture
+    
+    jufukuFlg = False
+    for hfn1 in gMyHavingFaniture:
+        if sijoURL == hfn1[0] and fnId == hfn1[1]:
+            messagebox.showinfo('メッセージ','既に購入済みの家具です')
+            return False
+    
+    if jufukuFlg == False:
+        name1 = getFanitureName(sijoURL, fnId)
+        vars = [sijoURL, fnId, name1]
+        gMyHavingFaniture.append(vars)
+
+    return True
+    
+def parchaseFanitureCallBack():
+
+    def parchaseFaniture():
+        global gSijoTabSelectBox
+        global gCurrentToDoTaskPoint
+        global gMargetShohinList
+        global gCurrentMarketURL
+        
+        if not gSijoTabSelectBox.curselection():
+            return 
+        crSelectIdx = gSijoTabSelectBox.curselection()[0];
+
+        price = int(gMarketShohinList[crSelectIdx][3])
+        if price > gCurrentToDoTaskPoint:
+            messagebox.showinfo('メッセージ','購入に必要なポイントが足りません')
+            return
+        
+        ret = addHavingFaniture(gCurrentMarketURL, gMarketShohinList[crSelectIdx][0])
+        
+        if ret == True:
+            str2 = "商品:"
+            str2 += gMarketShohinList[crSelectIdx][1]
+            str2 += "を購入しました"
+            messagebox.showinfo('メッセージ',str2)
+            gCurrentToDoTaskPoint = gCurrentToDoTaskPoint - price
+
+        DisplayCuttentToDoTaskPointTab()
+        DisplayAddFanitureTab()
+        
+        saveHavingFanitureList()
+        
+        return
+        
+    return parchaseFaniture
+    
+def saveHavingFanitureList():
+    global gMyHavingFaniture
+    
+    try:
+        URL = os.getcwd()
+        path1 = URL + "\\prop\MyHavingFaniture.txt"
+        f = open(path1, encoding='UTF-8', mode='w')
+    except OSError as e:
+        messagebox.showinfo('エラー','ファイルのオープンに失敗しました')
+        return
+    else:
+        #持っている家具一覧ファイルには（市場URL, 商品ID)のみ書き出し
+        for t1 in gMyHavingFaniture:
+            var1 = [t1[0], t1[1]]
+            f.write(','.join(map(str,var1)))
+            f.write('\n')
+        
+        f.close()
+
+    return
     
 def jumpToSijo(textBox1):
     global gSijoTab1
@@ -328,7 +421,6 @@ def jumpToSijo(textBox1):
     result = result.rstrip('\n')
     
     loadSijoData(result)
-    
     
     DisplaySijoData();
     
@@ -361,7 +453,11 @@ def loadSijoData(URL):
         gMarketShohinList = [];
         for line in lines:
             line = line.rstrip('\n')
+
             vars = line.split(',');
+            vars[0] = int(vars[0])
+            vars[3] = int(vars[3])
+            
             gMarketShohinList.append(vars) 
         
         f.close()
@@ -502,12 +598,16 @@ def addTaskCountCallBack(title):
     
     def addTaskCount():
         global gTaskList
-    
+        global gCurrentToDoTaskPoint
+        global gGetTaskPointVols
+        
         for t1 in gTaskList:
             if title == t1[0]:
                 t1[2] = int(t1[2]) + 1
+                gCurrentToDoTaskPoint = gCurrentToDoTaskPoint + gGetTaskPointVols[(int(t1[1])-1)]
         
         DisplayTaskListTab()
+        DisplayCuttentToDoTaskPointTab()
         
     return addTaskCount
     
@@ -621,7 +721,6 @@ def saveTaskList():
         
         f.close()
 
-
     return
 def gHavingFanitureListBoxSelected(event):
     global gAddFanitureTab
@@ -733,8 +832,7 @@ def gAddFanitureTab_main():
     gPointLabelOnAddFanitureTab = tkinter.Label(gAddFanitureTab, text="設置に必要なポイント:")
     gPointLabelOnAddFanitureTab.place(x=200, y=270)
     
-        
-    DisplayRoom(300,300)
+    DisplayRoom()
     
     button1 = ttk.Button(
         gAddFanitureTab,
@@ -742,12 +840,99 @@ def gAddFanitureTab_main():
         command=DisplayPreViewCallBack())
     button1.place(x=10,y=240)
     
-    button1 = ttk.Button(
+    button2 = ttk.Button(
         gAddFanitureTab,
         text='設置に必要なポイント計算',
         command=setNeetPtToSetFanitureCallBack())
-    button1.place(x=10,y=270)
+    button2.place(x=10,y=270)
     
+    button3 = ttk.Button(
+        gAddFanitureTab,
+        text='配置',
+        command=fixFanitureCallBack())
+    button3.place(x=10,y=300)
+
+
+  
+def fixFanitureCallBack():
+
+    def fixFaniture():
+        global gHavingFanitureListBox
+        global gFnPosX
+        global gFnPosY
+        global gFnPosZ
+        global gFnSizeX
+        global gFnSizeY
+        global gCurrentToDoTaskPoint
+        
+        if not getFaniturePosAndSizeEntryVals():
+            return
+            
+        
+        if not gHavingFanitureListBox.curselection():
+            return 
+        crSelectIdx = gHavingFanitureListBox.curselection()[0];
+        
+        needPt = calcFanitureSetPoint(gFnSizeY, gFnSizeX)
+        if gCurrentToDoTaskPoint < needPt:
+            messagebox.showinfo('メッセージ','配置に必要なポイントが足りません')
+            return
+        
+        addMyFanitureList(gMyHavingFaniture[crSelectIdx][0],gMyHavingFaniture[crSelectIdx][1])
+        gCurrentToDoTaskPoint = gCurrentToDoTaskPoint - needPt
+        
+        saveMyRoomFanitureList()
+        
+        DisplayCuttentToDoTaskPointTab()
+        DisplayRoom()
+        
+        return
+
+    return fixFaniture
+
+def saveMyRoomFanitureList():
+    try:
+        URL = os.getcwd()
+        path1 = URL + "\\prop\MyRoomFaniture.txt"
+        f = open(path1, encoding='UTF-8', mode='w')
+    except OSError as e:
+        messagebox.showinfo('エラー','ファイルのオープンに失敗しました')
+        return
+    else:
+        for t1 in gMyFaniture:
+            f.write(','.join(map(str,t1)))
+            f.write('\n')
+        
+        f.close()
+
+    return
+
+def addMyFanitureList(sijoURL, fnId):
+    global gMyFaniture
+    global gFnPosX
+    global gFnPosY
+    global gFnPosZ
+    global gFnSizeX
+    global gFnSizeY
+    
+    if not getFaniturePosAndSizeEntryVals():
+        return
+        
+    var1 = [sijoURL, fnId, gFnPosX, gFnPosY, gFnPosZ, gFnSizeY, gFnSizeX]
+    gMyFaniture.append(var1)
+    
+    return
+
+def DisplayAddFanitureTab():
+    global gHavingFanitureListBox
+    global gMyHavingFaniture
+    
+    gHavingFanitureListBox.delete(0, tkinter.END);
+    
+    for fn1 in gMyHavingFaniture:
+        gHavingFanitureListBox.insert(tkinter.END, fn1[2])
+        
+    return
 
 def getFaniturePosAndSizeEntryVals():
     global gFnPosX
@@ -1003,12 +1188,14 @@ def DisplayPreViewCallBack():
     
     return DisplayPreView
     
-def DisplayRoom(roomWidth, roomHeight):
+def DisplayRoom():
     global gMyFaniture
     global gCurrentRoomImg
+    global gRoomWidth
+    global gRoomHeight
     
     roomImg = cv2.imread("blank.png")    
-    roomImg = cv2.resize(roomImg, (roomWidth, roomHeight) )
+    roomImg = cv2.resize(roomImg, (gRoomWidth, gRoomHeight) )
     
     LoadFaniture()
 
@@ -2072,6 +2259,29 @@ def showDelAvatourItemPreviewCallBack(delLineIdx):
     
     return showDelAvatourItemPreview
     
+def gShowCurrentToDoTaskPointTab_main():
+    global gShowCurrentToDoTaskPointTab
+    global gCurrentToDoTaskPoint
+    global gCurrentToDoTaskPointStrLabel
+    
+    #文字を表示する。
+    str1 = "現在のポイント数:"
+    str1 += str(gCurrentToDoTaskPoint)
+    gCurrentToDoTaskPointStrLabel = tkinter.Label(gShowCurrentToDoTaskPointTab, text=str1)
+    gCurrentToDoTaskPointStrLabel.place(x=10, y=30)
+    
+    
+def DisplayCuttentToDoTaskPointTab():
+    global gCurrentToDoTaskPointStrLabel
+    global gCurrentToDoTaskPoint
+    
+    #文字を表示する。
+    str1 = "現在のポイント数:"
+    str1 += str(gCurrentToDoTaskPoint)
+    gCurrentToDoTaskPointStrLabel.configure(text=str1);
+    
+    return
+
 if __name__ == "__main__":
     main()
     
