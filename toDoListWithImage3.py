@@ -13,12 +13,14 @@ import datetime
 gRoomWidth = 300
 gRoomHeight = 300
 
+#タブリスト
 gSijoTab1 = ''
 gTaskListTab = ''
 gAddTaskTab = ''
 gAddFanitureTab = ''
 gAvatourItemShopTab = ''
 gAddAvatourItemTab = ''
+gDeleteFanitureTab = ''
 
 
 gCurrentMarketURL=''
@@ -52,7 +54,8 @@ gAddFanitureTabSizeXEntry=''
 gAddFanitureTabSizeYEntry=''
 
 gMyFaniture=[];
-gMyFaniturePrev=[];
+gMyAddFaniturePrev=[];
+gMyDelFaniturePrev=[];
 gCurrentRoomImg=''
 gCurrentPreviewRoomImg=''
 gPointLabelOnAddFanitureTab=''
@@ -64,6 +67,7 @@ gFnSizeY = ''
 
 
 gMyHavingFaniture=[]
+gSearchedHavingFaniture=[]
 gHavingFanitureListBox=''
 gAddFanitureTabFnImgLabel=''
 
@@ -102,7 +106,9 @@ gAvatourItmPosZ=''
 gAvatourItmSizeX=''
 gAvatourItmSizeY=''
 
-
+gFanitureDelButtons=[]
+gFanitureDelPrevButtons=[]
+gDeleteFanitureTabTree=''
 
 def calcFanitureSetPoint(height, width):
     print("height:"+str(height))
@@ -176,6 +182,7 @@ def main():
     global gAddFanitureTab
     global gAvatourItemShopTab
     global gAddAvatourItemTab
+    global gDeleteFanitureTab
     global gCurrentMarketURL
     global gCurrentMarketName
     global gMarketShohinList
@@ -201,6 +208,7 @@ def main():
     gAddFanitureTab = tkinter.Frame(nb)
     gAvatourItemShopTab = tkinter.Frame(nb)
     gAddAvatourItemTab = tkinter.Frame(nb)
+    gDeleteFanitureTab = tkinter.Frame(nb)
     
     nb.add(gSijoTab1, text="市場", padding=5)
     nb.add(gTaskListTab, text="タスク一覧", padding=5)
@@ -208,6 +216,7 @@ def main():
     nb.add(gAddFanitureTab, text="家具配置", padding=5)
     nb.add(gAvatourItemShopTab, text="アバターアイテムショップ", padding=5)
     nb.add(gAddAvatourItemTab, text="アバターアイテム追加", padding=5)
+    nb.add(gDeleteFanitureTab, text="家具削除", padding=5)
     
     #メインフレームでのnotebook配置を決定する。
     nb.pack(expand=1, fill="both")
@@ -219,6 +228,7 @@ def main():
     gAddFanitureTab_main()
     gAvatourItemShopTab_main()
     gAddAvatourItemTab_main()
+    gDeleteFanitureTab_main()
     
  
     #main_viewを表示する無限ループ
@@ -582,12 +592,14 @@ def registTaskCallBack():
         
         saveTaskList()
         
+        DisplayTaskListTab()
+        
     return registTask
 
 def saveTaskList():
     try:
         URL = os.getcwd()
-        path1 = URL + "\\prop\    askData.txt"
+        path1 = URL + "\\prop\TaskData.txt"
         f = open(path1, encoding='UTF-8', mode='w')
     except OSError as e:
         messagebox.showinfo('エラー','ファイルのオープンに失敗しました')
@@ -598,7 +610,7 @@ def saveTaskList():
             f.write('\n')
         
         f.close()
-        DisplayTaskListTab()
+
 
     return
 def gHavingFanitureListBoxSelected(event):
@@ -891,10 +903,7 @@ def AddImage(img1, img2, sx, sy, size_y, size_x):
     
     width = im1w
     height = im1h
-    print("---")
-    print(im1w)
-    print(im1h)
-    print("---")
+
     for y in range(height):
         for x in range(width):            
             out_img[y, x] = img1[y, x]
@@ -949,10 +958,11 @@ def DisplayPreViewCallBack():
         global gAddFanitureTab
         global gHavingFanitureListBox
         global gMyHavingFaniture
-        global gAddFanitureTabFnImgLabel
+        global gSearchedHavingFaniture
         global gMyFaniture
-        global gMyFaniturePrev
+        global gMyAddFaniturePrev
     
+        gSearchedHavingFaniture = gMyHavingFaniture.copy()
         if not gHavingFanitureListBox.curselection():
             return 
         crSelectIdx = gHavingFanitureListBox.curselection()[0];
@@ -960,17 +970,17 @@ def DisplayPreViewCallBack():
         if not getFaniturePosAndSizeEntryVals():
             return
             
-        gMyFaniturePrev = gMyFaniture.copy()
+        gMyAddFaniturePrev = gMyFaniture.copy()
         
-        val1 = [gMyHavingFaniture[crSelectIdx][0], gMyHavingFaniture[crSelectIdx][1], gFnPosX, gFnPosY, gFnPosZ,gFnSizeY, gFnSizeX]
-        gMyFaniturePrev.append(val1)
+        val1 = [gSearchedHavingFaniture[crSelectIdx][0], gSearchedHavingFaniture[crSelectIdx][1], gFnPosX, gFnPosY, gFnPosZ,gFnSizeY, gFnSizeX]
+        gMyAddFaniturePrev.append(val1)
 
-        gMyFaniturePrev = sorted(gMyFaniturePrev, reverse=False, key=lambda x:x[4])
+        gMyAddFaniturePrev = sorted(gMyAddFaniturePrev, reverse=False, key=lambda x:x[4])
         
         roomImg = cv2.imread("blank.png")    
         roomImg = cv2.resize(roomImg, (gRoomWidth, gRoomHeight) )
         
-        for fn in gMyFaniturePrev:
+        for fn in gMyAddFaniturePrev:
             fnURL = getFanitureImgURL(fn[0], fn[1])
             fnImg = cv2.imread(fnURL)
             roomImg = AddImage(roomImg, fnImg, fn[2], fn[3], fn[5], fn[6])
@@ -1711,6 +1721,174 @@ def setItemCallBack():
         return 0
         
     return setItem
+    
+def gDeleteFanitureTab_main():
+    global gDeleteFanitureTab
+    global gDeleteFanitureTabTree
+    global gFanitureDelButtons
+    
+    LoadFaniture()
+    
+    #文字を表示する。
+    param_name = tkinter.Label(gDeleteFanitureTab, text="家具削除")
+    param_name.place(x=10, y=30)
+    
+    label1 = tkinter.Label(gDeleteFanitureTab, text="配置中家具一覧")
+    label1.place(x=10, y=60)
+    
+    gDeleteFanitureTabTree = ttk.Treeview(gDeleteFanitureTab);
+
+    gDeleteFanitureTabTree["columns"] = (1, 2, 3, 4)
+    gDeleteFanitureTabTree["show"] = "headings"
+
+    gDeleteFanitureTabTree.column(1,width=150)
+    gDeleteFanitureTabTree.column(2,width=100)
+    gDeleteFanitureTabTree.column(3,width=100)
+    gDeleteFanitureTabTree.column(4,width=200)
+    
+    gDeleteFanitureTabTree.heading(1,text="家具名")
+    gDeleteFanitureTabTree.heading(2,text="位置(x, y, z)")
+    gDeleteFanitureTabTree.heading(3,text="サイズ(h,w)")
+    gDeleteFanitureTabTree.heading(4,text="操作")
+    
+    gDeleteFanitureTabTree.place(x=10, y=90)
+    
+    DisplayFanitureListTab();
+    
+    return 0        
+    
+def DisplayFanitureListTab():
+    global gDeleteFanitureTab
+    global gDeleteFanitureTabTree
+    global gFanitureDelButtons
+    global gFanitureDelPrevButtons
+    global gMyFaniture
+    
+    for i in gDeleteFanitureTabTree.get_children():
+        gDeleteFanitureTabTree.delete(i)
+    
+    for b1 in gFanitureDelPrevButtons:
+        b1.place_forget()
+
+    for b2 in gFanitureDelButtons:
+        b2.place_forget()
+        
+
+
+    style = ttk.Style(gDeleteFanitureTab)
+    style.configure("Treeview", rowheight=30)
+    
+    lineIdx=0
+    for t1 in gMyFaniture:
+
+        name = getFanitureName(t1[0], t1[1])
+        
+        positionStr = '( '
+        positionStr += str(t1[2])
+        positionStr += ', '
+        positionStr += str(t1[3])
+        positionStr += ', '
+        positionStr += str(t1[4])
+        positionStr += ' )'
+        
+        sizeStr = '( '
+        sizeStr += str(t1[5])
+        sizeStr += ', '
+        sizeStr += str(t1[6])
+        sizeStr += ' )'
+        
+        gDeleteFanitureTabTree.insert("","end",values=(name,positionStr,sizeStr, ""))    
+        
+        # ボタン
+        button1 = ttk.Button(
+            gDeleteFanitureTab,
+            text='削除後のプレビュー',
+            command=showDelFaniturePreviewCallBack(lineIdx))
+        button1.place(x=370,y=120+30*lineIdx)
+        gFanitureDelButtons.append(button1)
+        
+        button2 = ttk.Button(
+            gDeleteFanitureTab,
+            text='この家具を削除',
+            command=delFanitureCallBack(lineIdx))
+        button2.place(x=470,y=120+30*lineIdx)
+        gFanitureDelPrevButtons.append(button2)
+        
+        lineIdx = lineIdx + 1
+          
+    return  0
+    
+def delFanitureCallBack(delLineIdx):
+    
+    def delFaniture():
+        global gMyFaniture
+            
+        lineIdx = 0
+        result=[]
+        for t1 in gMyFaniture:
+            if lineIdx != delLineIdx:
+                result.append(t1) 
+        
+            lineIdx = lineIdx + 1
+        
+        gMyFaniture = result
+        
+        saveFanitureList()
+        
+        DisplayFanitureListTab()
+        
+    return delFaniture
+
+def saveFanitureList():
+    global gMyFaniture
+        
+    try:
+        URL = os.getcwd()
+        path1 = URL + "\\prop\MyRoomFaniture.txt"
+        f = open(path1, encoding='UTF-8', mode='w')
+    except OSError as e:
+        messagebox.showinfo('エラー','ファイルのオープンに失敗しました')
+        return
+    else:
+        for t1 in gMyFaniture:
+            f.write(','.join(map(str,t1)))
+            f.write('\n')
+            
+        f.close()
+
+
+
+def showDelFaniturePreviewCallBack(delLineIdx):
+
+    def showDelFaniturePreview():
+        global gCurrentPreviewRoomImg
+        global gRoomWidth
+        global gRoomHeight
+        global gDeleteFanitureTab
+        global gDelFanitureListBox
+        global gMyFaniture
+        global gMyDelFaniturePrev
+    
+    
+        gMyDelFaniturePrev = gMyFaniture.copy()
+        gMyDelFaniturePrev.pop(delLineIdx)
+        
+        roomImg = cv2.imread("blank.png")    
+        roomImg = cv2.resize(roomImg, (gRoomWidth, gRoomHeight) )
+        
+        for fn in gMyDelFaniturePrev:
+            fnURL = getFanitureImgURL(fn[0], fn[1])
+            fnImg = cv2.imread(fnURL)
+            roomImg = AddImage(roomImg, fnImg, fn[2], fn[3], fn[5], fn[6])
+        
+        gCurrentPreviewRoomImg = roomImg
+
+        cv2.imshow("previewRoom", roomImg)
+        
+        return
+    
+    return showDelFaniturePreview
+    
 if __name__ == "__main__":
     main()
     
