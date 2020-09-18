@@ -13,6 +13,7 @@ import datetime
 gRoomWidth = 300
 gRoomHeight = 300
 
+
 #タブリスト
 gSijoTab1 = ''
 gTaskListTab = ''
@@ -21,6 +22,7 @@ gAddFanitureTab = ''
 gAvatourItemShopTab = ''
 gAddAvatourItemTab = ''
 gDeleteFanitureTab = ''
+gDeleteAvatourItemTab = ''
 
 
 gCurrentMarketURL=''
@@ -110,6 +112,10 @@ gFanitureDelButtons=[]
 gFanitureDelPrevButtons=[]
 gDeleteFanitureTabTree=''
 
+gAvatourItemDelButtons=[]
+gAvatourItemDelPrevButtons=[]
+gDeleteAvatourItemTabTree=''
+
 def calcFanitureSetPoint(height, width):
     print("height:"+str(height))
     print("width:"+str(width))
@@ -183,6 +189,7 @@ def main():
     global gAvatourItemShopTab
     global gAddAvatourItemTab
     global gDeleteFanitureTab
+    global gDeleteAvatourItemTab
     global gCurrentMarketURL
     global gCurrentMarketName
     global gMarketShohinList
@@ -209,6 +216,7 @@ def main():
     gAvatourItemShopTab = tkinter.Frame(nb)
     gAddAvatourItemTab = tkinter.Frame(nb)
     gDeleteFanitureTab = tkinter.Frame(nb)
+    gDeleteAvatourItemTab = tkinter.Frame(nb)
     
     nb.add(gSijoTab1, text="市場", padding=5)
     nb.add(gTaskListTab, text="タスク一覧", padding=5)
@@ -217,6 +225,7 @@ def main():
     nb.add(gAvatourItemShopTab, text="アバターアイテムショップ", padding=5)
     nb.add(gAddAvatourItemTab, text="アバターアイテム追加", padding=5)
     nb.add(gDeleteFanitureTab, text="家具削除", padding=5)
+    nb.add(gDeleteAvatourItemTab, text="アバターアイテム削除", padding=5)
     
     #メインフレームでのnotebook配置を決定する。
     nb.pack(expand=1, fill="both")
@@ -229,6 +238,7 @@ def main():
     gAvatourItemShopTab_main()
     gAddAvatourItemTab_main()
     gDeleteFanitureTab_main()
+    gDeleteAvatourItemTab_main()
     
  
     #main_viewを表示する無限ループ
@@ -1725,7 +1735,6 @@ def setItemCallBack():
 def gDeleteFanitureTab_main():
     global gDeleteFanitureTab
     global gDeleteFanitureTabTree
-    global gFanitureDelButtons
     
     LoadFaniture()
     
@@ -1805,14 +1814,14 @@ def DisplayFanitureListTab():
             text='削除後のプレビュー',
             command=showDelFaniturePreviewCallBack(lineIdx))
         button1.place(x=370,y=120+30*lineIdx)
-        gFanitureDelButtons.append(button1)
+        gFanitureDelPrevButtons.append(button1)
         
         button2 = ttk.Button(
             gDeleteFanitureTab,
             text='この家具を削除',
             command=delFanitureCallBack(lineIdx))
         button2.place(x=470,y=120+30*lineIdx)
-        gFanitureDelPrevButtons.append(button2)
+        gFanitureDelButtons.append(button2)
         
         lineIdx = lineIdx + 1
           
@@ -1864,8 +1873,6 @@ def showDelFaniturePreviewCallBack(delLineIdx):
         global gCurrentPreviewRoomImg
         global gRoomWidth
         global gRoomHeight
-        global gDeleteFanitureTab
-        global gDelFanitureListBox
         global gMyFaniture
         global gMyDelFaniturePrev
     
@@ -1888,6 +1895,182 @@ def showDelFaniturePreviewCallBack(delLineIdx):
         return
     
     return showDelFaniturePreview
+
+
+def gDeleteAvatourItemTab_main():
+    global gDeleteAvatourItemTab
+    global gDeleteAvatourItemTabTree
+    
+    LoadAvatour()
+    
+    #文字を表示する。
+    param_name = tkinter.Label(gDeleteAvatourItemTab, text="アバターアイテム削除")
+    param_name.place(x=10, y=30)
+    
+    label1 = tkinter.Label(gDeleteAvatourItemTab, text="装備中アバターアイテム一覧")
+    label1.place(x=10, y=60)
+    
+    gDeleteAvatourItemTabTree = ttk.Treeview(gDeleteAvatourItemTab);
+
+    gDeleteAvatourItemTabTree["columns"] = (1, 2, 3, 4)
+    gDeleteAvatourItemTabTree["show"] = "headings"
+
+    gDeleteAvatourItemTabTree.column(1,width=150)
+    gDeleteAvatourItemTabTree.column(2,width=100)
+    gDeleteAvatourItemTabTree.column(3,width=100)
+    gDeleteAvatourItemTabTree.column(4,width=250)
+    
+    gDeleteAvatourItemTabTree.heading(1,text="アイテム名")
+    gDeleteAvatourItemTabTree.heading(2,text="位置(x, y, z)")
+    gDeleteAvatourItemTabTree.heading(3,text="サイズ(h,w)")
+    gDeleteAvatourItemTabTree.heading(4,text="操作")
+    
+    gDeleteAvatourItemTabTree.place(x=10, y=90)
+    
+    DisplayAvatourItemListTab();
+    
+    return 0
+    
+def DisplayAvatourItemListTab():
+    global gDeleteAvatourItemTab
+    global gDeleteAvatourItemTabTree
+    global gAvatourItemDelButtons
+    global gAvatourItemDelPrevButtons
+    global gMyAvatourItem
+    global gMyAvatourPrev
+    
+    for i in gDeleteAvatourItemTabTree.get_children():
+        gDeleteAvatourItemTabTree.delete(i)
+    
+    for b1 in gAvatourItemDelPrevButtons:
+        b1.place_forget()
+
+    for b2 in gAvatourItemDelButtons:
+        b2.place_forget()
+        
+
+    style = ttk.Style(gDeleteAvatourItemTab)
+    style.configure("Treeview", rowheight=30)
+    
+    lineIdx=0
+    for t1 in gMyAvatourItem:
+
+        name = getAvatourItemName(t1[0], t1[1])
+        
+        positionStr = '( '
+        positionStr += str(t1[2])
+        positionStr += ', '
+        positionStr += str(t1[3])
+        positionStr += ', '
+        positionStr += str(t1[4])
+        positionStr += ' )'
+        
+        sizeStr = '( '
+        sizeStr += str(t1[5])
+        sizeStr += ', '
+        sizeStr += str(t1[6])
+        sizeStr += ' )'
+        
+        gDeleteAvatourItemTabTree.insert("","end",values=(name,positionStr,sizeStr, ""))    
+        
+        # ボタン
+        button1 = ttk.Button(
+            gDeleteAvatourItemTabTree,
+            text='削除後のプレビュー',
+            command=showDelAvatourItemPreviewCallBack(lineIdx))
+        button1.place(x=370,y=30+30*lineIdx)
+        gAvatourItemDelPrevButtons.append(button1)
+        
+        button2 = ttk.Button(
+            gDeleteAvatourItemTabTree,
+            text='このアイテムを削除',
+            command=delAvatourItemCallBack(lineIdx))
+        button2.place(x=470,y=30+30*lineIdx)
+        gAvatourItemDelButtons.append(button2)
+        
+        lineIdx = lineIdx + 1
+          
+    return  0
+    
+def delAvatourItemCallBack(delLineIdx):
+    
+    def delAvatourItem():
+        global gMyAvatourItem
+            
+        lineIdx = 0
+        result=[]
+        for t1 in gMyAvatourItem:
+            if lineIdx != delLineIdx:
+                result.append(t1) 
+        
+            lineIdx = lineIdx + 1
+        
+        gMyAvatourItem = result
+        
+        saveAvatourItemList()
+        
+        DisplayAvatourItemListTab()
+        
+    return delAvatourItem
+
+def saveAvatourItemList():
+    global gMyAvatourItem
+        
+    try:
+        URL = os.getcwd()
+        path1 = URL + "\\prop\MyAvatour.txt"
+        f = open(path1, encoding='UTF-8', mode='w')
+    except OSError as e:
+        messagebox.showinfo('エラー','ファイルのオープンに失敗しました')
+        return
+    else:
+        for t1 in gMyAvatourItem:
+            f.write(','.join(map(str,t1)))
+            f.write('\n')
+            
+        f.close()
+
+def showDelAvatourItemPreviewCallBack(delLineIdx):
+
+    def showDelAvatourItemPreview():
+        global gCurrentPreviewAvatourImg
+        global gAvatourBlankType
+        global gAvatourWidth
+        global gAvatourHeight
+        global gMyAvatourItem
+        global gMyAvatourPrev
+        
+        global gAvatourBlankType
+        global gMyAvatourItem
+        global gMyAvatourPrev
+        global gCurrentAvatourImg
+        
+
+        
+        LoadAvatour()
+
+        gMyAvatourPrev = gMyAvatourItem.copy()
+        gMyAvatourPrev.pop(delLineIdx)
+        
+        if gAvatourBlankType == 1:
+            avatourImg = cv2.imread("AvatourBlank1.png")
+        else:
+            avatourImg = cv2.imread("AvatourBlank2.png")
+          
+        avatourImg = cv2.resize(avatourImg, (gAvatourWidth, gAvatourHeight) )
+        
+        for fn in gMyAvatourPrev:
+            fnURL = getAvatourItemImgURL(fn[0], fn[1])
+            itmImg = cv2.imread(fnURL)
+            avatourImg = AddImage(avatourImg, itmImg, fn[2], fn[3], fn[5], fn[6])
+        
+        gCurrentPreviewAvatourImg = avatourImg
+
+        cv2.imshow("previewAvatour", avatourImg)
+        
+        return
+    
+    return showDelAvatourItemPreview
     
 if __name__ == "__main__":
     main()
