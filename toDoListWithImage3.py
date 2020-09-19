@@ -13,10 +13,13 @@ import datetime
 gRoomWidth = 300
 gRoomHeight = 300
 gAvatourBlankType=1
+gAvatourVisibleFlg=True
 gAvatourWidth=100
 gAvatourHeight=150
 gAvatourPosX = 0
 gAvatourPosY = 0
+gAvatourPosZ = 0
+
 
 gCurrentToDoTaskPoint = 100
 gCurrentToDoTaskPointStrLabel=''
@@ -1155,6 +1158,12 @@ def DisplayPreViewCallBack():
         global gSearchedHavingFaniture
         global gMyFaniture
         global gMyAddFaniturePrev
+        global gAvatourVisibleFlg
+        global gAvatourWidth
+        global gAvatourHeight
+        global gAvatourPosX
+        global gAvatourPosY
+        global gAvatourPosZ
     
         gSearchedHavingFaniture = gMyHavingFaniture.copy()
         if not gHavingFanitureListBox.curselection():
@@ -1163,6 +1172,8 @@ def DisplayPreViewCallBack():
 
         if not getFaniturePosAndSizeEntryVals():
             return
+        
+        avatourImg = MakeAvatourImage()
             
         gMyAddFaniturePrev = gMyFaniture.copy()
         
@@ -1177,6 +1188,11 @@ def DisplayPreViewCallBack():
         for fn in gMyAddFaniturePrev:
             fnURL = getFanitureImgURL(fn[0], fn[1])
             fnImg = cv2.imread(fnURL)
+            
+        #アバターを描画
+            if gAvatourVisibleFlg == True and fn[4] >= gAvatourPosZ:
+                roomImg = AddImage(roomImg, avatourImg, gAvatourPosX, gAvatourPosY, gAvatourHeight, gAvatourWidth)
+                
             roomImg = AddImage(roomImg, fnImg, fn[2], fn[3], fn[5], fn[6])
         
         gCurrentPreviewRoomImg = roomImg
@@ -1192,6 +1208,14 @@ def DisplayRoom():
     global gCurrentRoomImg
     global gRoomWidth
     global gRoomHeight
+    global gAvatourVisibleFlg
+    global gAvatourWidth
+    global gAvatourHeight
+    global gAvatourPosX
+    global gAvatourPosY
+    global gAvatourPosZ
+    
+    avatourImg = MakeAvatourImage()
     
     roomImg = cv2.imread("blank.png")    
     roomImg = cv2.resize(roomImg, (gRoomWidth, gRoomHeight) )
@@ -1201,6 +1225,13 @@ def DisplayRoom():
     for fn in gMyFaniture:
         fnURL = getFanitureImgURL(fn[0], fn[1])
         fnImg = cv2.imread(fnURL)
+        
+        
+        #アバターを描画
+        if gAvatourVisibleFlg == True and fn[4] >= gAvatourPosZ:
+            roomImg = AddImage(roomImg, avatourImg, gAvatourPosX, gAvatourPosY, gAvatourHeight, gAvatourWidth)
+        
+
         roomImg = AddImage(roomImg, fnImg, fn[2], fn[3], fn[5], fn[6])
     
     gCurrentRoomImg = roomImg
@@ -2425,6 +2456,30 @@ def gShowCurrentToDoTaskPointTab_main():
     gCurrentToDoTaskPointStrLabel = tkinter.Label(gShowCurrentToDoTaskPointTab, text=str1)
     gCurrentToDoTaskPointStrLabel.place(x=10, y=30)
     
+
+def MakeAvatourImage():
+    global gAvatourBlankType
+    global gMyAvatourItem
+    global gCurrentAvatourImg
+    global gAvatourWidth
+    global gAvatourHeight
+    
+    if gAvatourBlankType == 1:
+        avatourImg = cv2.imread("AvatourBlank1.png")
+    else:
+        avatourImg = cv2.imread("AvatourBlank2.png")
+      
+    avatourImg = cv2.resize(avatourImg, (gAvatourWidth, gAvatourHeight) )
+    LoadAvatour()
+
+    for fn in gMyAvatourItem:
+        fnURL = getAvatourItemImgURL(fn[0], fn[1])
+        fnImg = cv2.imread(fnURL)
+        avatourImg = AddImage(avatourImg, fnImg, fn[2], fn[3], fn[5], fn[6])
+    
+    gCurrentAvatourImg = avatourImg
+    
+    return gCurrentAvatourImg
     
 def DisplayCuttentToDoTaskPointTab():
     global gCurrentToDoTaskPointStrLabel
