@@ -357,7 +357,7 @@ def parchaseFanitureCallBack():
     def parchaseFaniture():
         global gSijoTabSelectBox
         global gCurrentToDoTaskPoint
-        global gMargetShohinList
+        global gMarketShohinList
         global gCurrentMarketURL
         
         if not gSijoTabSelectBox.curselection():
@@ -697,7 +697,6 @@ def registTaskCallBack():
         currentTimeStr = datetime.date.today().strftime('%Y%m%d')
         
         task1 = [taskTitle, nanidoVal, 0, currentTimeStr, risetSpanVal]
-        print(task1)
         gTaskList.append(task1)
         
         saveTaskList()
@@ -836,7 +835,7 @@ def gAddFanitureTab_main():
     
     button1 = ttk.Button(
         gAddFanitureTab,
-        text='プレビュー',
+        text='配置プレビュー',
         command=DisplayPreViewCallBack())
     button1.place(x=10,y=240)
     
@@ -1286,7 +1285,6 @@ def LoadHavingFaniture():
     
     URL = os.getcwd()
     path1 = URL + '\prop\MyHavingFaniture.txt'
-    print(path1)
     
     try:
         f = open(path1, encoding='UTF-8')
@@ -1310,7 +1308,6 @@ def LoadHavingFaniture():
             fn1[1] = v1
             name1 = getFanitureName(fn1[0], fn1[1])
             fn1.append(name1)
-            print(fn1)
         
         #市場URL,商品ID,商品名
         gMyHavingFaniture = sorted(gMyHavingFaniture, reverse=False, key=lambda x:x[2])
@@ -1409,7 +1406,99 @@ def gAvatourItemShopTab_main():
     gAvatourItemPriceLabel = tkinter.Label(gAvatourItemShopTab, text="購入に必要なポイント:")
     gAvatourItemPriceLabel.place(x=200, y=320)
     
+    button2 = ttk.Button(
+        gAvatourItemShopTab,
+        text='購入',
+        command=parchaseAvatourItemCallBack())
+    button2.place(x=200,y=350)
+    
     return 0
+
+def addHavingAvatourItem(avatourItemShopURL, itmId):
+    global gMyHavingAvatourItem
+    
+    jufukuFlg = False
+    for hfn1 in gMyHavingAvatourItem:
+        if avatourItemShopURL == hfn1[0] and itmId == hfn1[1]:
+            messagebox.showinfo('メッセージ','既に購入済みのアイテムです')
+            return False
+    
+    if jufukuFlg == False:
+        name1 = getAvatourItemName(avatourItemShopURL, itmId)
+        vars = [avatourItemShopURL, itmId, name1]
+        gMyHavingAvatourItem.append(vars)
+
+    return True
+    
+def parchaseAvatourItemCallBack():
+
+    def parchaseAvatourItem():
+        global gAvatourItemListBoxOnAvatourItemShopTab
+        global gCurrentToDoTaskPoint
+        global gAvatourItemListOnAvatourItemShopTab
+        global gCurrentAvatourItemShopURL
+        
+        if not gAvatourItemListBoxOnAvatourItemShopTab.curselection():
+            return 
+        crSelectIdx = gAvatourItemListBoxOnAvatourItemShopTab.curselection()[0];
+
+        price = int(gAvatourItemListOnAvatourItemShopTab[crSelectIdx][3])
+        if price > gCurrentToDoTaskPoint:
+            messagebox.showinfo('メッセージ','購入に必要なポイントが足りません')
+            return
+        
+        ret = addHavingAvatourItem(gCurrentAvatourItemShopURL, gAvatourItemListOnAvatourItemShopTab[crSelectIdx][0])
+        
+        if ret == True:
+            str2 = "アイテム:"
+            str2 += gAvatourItemListOnAvatourItemShopTab[crSelectIdx][1]
+            str2 += "を購入しました"
+            messagebox.showinfo('メッセージ',str2)
+            gCurrentToDoTaskPoint = gCurrentToDoTaskPoint - price
+
+        DisplayCuttentToDoTaskPointTab()
+        DisplayAddAvatourItemTab()
+        
+        saveHavingAvatourItemList()
+        
+        return
+        
+    return parchaseAvatourItem
+
+    
+def DisplayAddAvatourItemTab():
+    global gHavingAvatourItemListBox
+    global gMyHavingAvatourItem
+    
+    gHavingAvatourItemListBox.delete(0, tkinter.END);
+    
+    for fn1 in gMyHavingAvatourItem:
+        gHavingAvatourItemListBox.insert(tkinter.END, fn1[2])
+        
+    return
+    
+def saveHavingAvatourItemList():
+    global gMyHavingAvatourItem
+    
+    try:
+        URL = os.getcwd()
+        path1 = URL + "\\prop\MyHavingAvatourItem.txt"
+        f = open(path1, encoding='UTF-8', mode='w')
+    except OSError as e:
+        messagebox.showinfo('エラー','ファイルのオープンに失敗しました')
+        return
+    else:
+        #持っている家具一覧ファイルには（市場URL, 商品ID)のみ書き出し
+        for t1 in gMyHavingAvatourItem:
+            var1 = [t1[0], t1[1]]
+            f.write(','.join(map(str,var1)))
+            f.write('\n')
+        
+        f.close()
+
+    return
+    
+
 
 def gAvatourItemListBoxOnAvatourItemShopTabSelected(event):
     global gAvatourItemShopTab
@@ -1423,7 +1512,7 @@ def gAvatourItemListBoxOnAvatourItemShopTabSelected(event):
     global gAvatourItemPriceLabel
     global gAvatourItemShopTabShohinLabel
    
-    print(gAvatourItemListBoxOnAvatourItemShopTab.curselection())
+
     if not gAvatourItemListBoxOnAvatourItemShopTab.curselection():
         return 
     crSelectIdx = gAvatourItemListBoxOnAvatourItemShopTab.curselection()[0];
@@ -1488,6 +1577,7 @@ def loadAvatourItemShopData(URL):
         for line in lines:
             line = line.rstrip('\n')
             vars = line.split(',');
+            vars[0] = int(vars[0])
             gAvatourItemListOnAvatourItemShopTab.append(vars) 
         
         f.close()
@@ -1613,11 +1703,11 @@ def gAddAvatourItemTab_main():
     gAddAvatorItemTabItmImgLabel.place(x=300, y=50)
     
         
-    DisplayAvatour(100,150)
+    DisplayAvatour()
     
     button1 = ttk.Button(
         gAddAvatourItemTab,
-        text='プレビュー',
+        text='装備プレビュー',
         command=DisplayAvatourItemPreViewCallBack())
     button1.place(x=10,y=240)
     
@@ -1628,15 +1718,15 @@ def gAddAvatourItemTab_main():
     button2.place(x=10,y=270)
     
     return 0
+    
 def DisplayAvatourItemPreViewCallBack():
     
     def DisplayAvatourItemPreView():
     
         global gCurrentPreviewAvatourImg
-        global gAvatourWidth
-        global gAvatourHeight
         global gAvatourItmPosX
         global gAvatourItmPosY
+        global gAvatourItmPosZ
         global gAvatourItmSizeX
         global gAvatourItmSizeY
         global gAddAvatourItemTab
@@ -1660,7 +1750,6 @@ def DisplayAvatourItemPreViewCallBack():
         val1 = [gMyHavingAvatourItem[crSelectIdx][0], gMyHavingAvatourItem[crSelectIdx][1], gAvatourItmPosX, gAvatourItmPosY, gAvatourItmPosZ, gAvatourItmSizeY, gAvatourItmSizeX]
         gMyAvatourPrev.append(val1)
 
-        print(gMyAvatourPrev)
         gMyAvatourPrev = sorted(gMyAvatourPrev, reverse=False, key=lambda x:x[4])
         
         if gAvatourBlankType == 1:
@@ -1755,23 +1844,24 @@ def getAvatourItemPosAndSizeEntryVals():
         
     return True
     
-def DisplayAvatour(avatourWidth, avatourHeight):
+def DisplayAvatour():
     global gAvatourBlankType
     global gMyAvatourItem
     global gCurrentAvatourImg
+    global gAvatourWidth
+    global gAvatourHeight
     
     if gAvatourBlankType == 1:
         avatourImg = cv2.imread("AvatourBlank1.png")
     else:
         avatourImg = cv2.imread("AvatourBlank2.png")
       
-    avatourImg = cv2.resize(avatourImg, (avatourWidth, avatourHeight) )
+    avatourImg = cv2.resize(avatourImg, (gAvatourWidth, gAvatourHeight) )
     LoadAvatour()
 
     for fn in gMyAvatourItem:
         fnURL = getAvatourItemImgURL(fn[0], fn[1])
         fnImg = cv2.imread(fnURL)
-        print(fn)
         avatourImg = AddImage(avatourImg, fnImg, fn[2], fn[3], fn[5], fn[6])
     
     gCurrentAvatourImg = avatourImg
@@ -1812,7 +1902,6 @@ def LoadHavingAvatourItem():
     
     URL = os.getcwd()
     path1 = URL + '\prop\MyHavingAvatourItem.txt'
-    print(path1)
     
     try:
         f = open(path1, encoding='UTF-8')
@@ -1826,17 +1915,15 @@ def LoadHavingAvatourItem():
         for line in lines:
             line = line.rstrip('\n')
             vars = line.split(',');
+            vars[1] = int(vars[1])
             #市場URL,商品ID
             gMyHavingAvatourItem.append(vars) 
         
         f.close()
         
         for fn1 in gMyHavingAvatourItem:
-            v1 = int(fn1[1])
-            fn1[1] = v1
             name1 = getAvatourItemName(fn1[0], fn1[1])
             fn1.append(name1)
-            print(fn1)
         
         #市場URL,商品ID,商品名
         gMyHavingAvatourItem = sorted(gMyHavingAvatourItem, reverse=False, key=lambda x:x[2])
@@ -1865,7 +1952,7 @@ def getAvatourItemName(avatourShopURL, itmId):
                 break
         
         f.close()
-        
+   
     return name
 
 
@@ -1911,13 +1998,79 @@ def LoadAvatour():
         
         
     return
-    
+#aaa   
 def setItemCallBack():
 
     def setItem():
-        return 0
+        global gMyHavingAvatourItem
+        global gAddAvatourItemTabPosXEntry
+        global gAddAvatourItemTabPosYEntry
+        global gAddAvatourItemTabPosZEntry
+        global gAddAvatourItemTabSizeXEntry
+        global gAddAvatourItemTabSizeYEntry
+        global gHavingAvatourItemListBox
+        global gCurrentToDoTaskPoint
+        global gMyAvatourItem
         
+        if not getAvatourItemPosAndSizeEntryVals():
+            return
+            
+        
+        if not gHavingAvatourItemListBox.curselection():
+            return 
+        crSelectIdx = gHavingAvatourItemListBox.curselection()[0];
+        
+        needPt = 40
+        if gCurrentToDoTaskPoint < needPt:
+            messagebox.showinfo('メッセージ','配置に必要なポイントが足りません')
+            return
+        
+        addMyAvatourItemList(gMyHavingAvatourItem[crSelectIdx][0],gMyHavingAvatourItem[crSelectIdx][1])
+        gCurrentToDoTaskPoint = gCurrentToDoTaskPoint - needPt
+        
+        saveMyAvatourItemList()
+        
+        DisplayCuttentToDoTaskPointTab()
+        DisplayAvatour()
+        
+        return
+
     return setItem
+
+def saveMyAvatourItemList():
+    global gMyAvatourItem
+    
+    try:
+        URL = os.getcwd()
+        path1 = URL + "\\prop\MyAvatour.txt"
+        f = open(path1, encoding='UTF-8', mode='w')
+    except OSError as e:
+        messagebox.showinfo('エラー','ファイルのオープンに失敗しました')
+        return
+    else:
+        for t1 in gMyAvatourItem:
+            f.write(','.join(map(str,t1)))
+            f.write('\n')
+        
+        f.close()
+
+    return
+
+def addMyAvatourItemList(avatourShopURL, itmId):
+    global gMyAvatourItem
+    global gAvatourItmPosX
+    global gAvatourItmPosY
+    global gAvatourItmPosZ
+    global gAvatourItmSizeX
+    global gAvatourItmSizeY
+    
+    if not getAvatourItemPosAndSizeEntryVals():
+        return
+        
+    var1 = [avatourShopURL, itmId, gAvatourItmPosX, gAvatourItmPosY, gAvatourItmPosZ, gAvatourItmSizeY, gAvatourItmSizeX]
+    gMyAvatourItem.append(var1)
+    
+    return
     
 def gDeleteFanitureTab_main():
     global gDeleteFanitureTab
@@ -2032,6 +2185,7 @@ def delFanitureCallBack(delLineIdx):
         saveFanitureList()
         
         DisplayFanitureListTab()
+        DisplayRoom()
         
     return delFaniture
 
@@ -2197,6 +2351,7 @@ def delAvatourItemCallBack(delLineIdx):
         saveAvatourItemList()
         
         DisplayAvatourItemListTab()
+        DisplayAvatour()
         
     return delAvatourItem
 
