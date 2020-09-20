@@ -10,6 +10,8 @@ import cv2
 import os
 import datetime
 
+gMain_View = ''
+
 gRoomWidth = 300
 gRoomHeight = 300
 gAvatourBlankType=1
@@ -21,9 +23,11 @@ gAvatourPosY = 0
 gAvatourPosZ = 0
 
 
-gCurrentToDoTaskPoint = 100
+gCurrentToDoTaskPoint = 9999
 gCurrentToDoTaskPointStrLabel=''
 gGetTaskPointVols=[10,20,30,40]
+
+print(
 
 #タブリスト
 gSijoTab1 = ''
@@ -36,6 +40,7 @@ gDeleteFanitureTab = ''
 gDeleteAvatourItemTab = ''
 gShowCurrentToDoTaskPointTab = ''
 gAvatourConfigurationTab = ''
+gExpandRoomTab = ''
 
 
 gCurrentMarketURL=''
@@ -139,6 +144,75 @@ gAvatourConfigurationTabPosZEntry=''
 gAvatourConfigurationTabSizeXEntry=''
 gAvatourConfigurationTabSizeYEntry=''
 
+gExpandRoomTabPriceLabel=''
+
+def LoadUserInfo():
+	global gCurrentToDoTaskPoint
+	global gRoomWidth
+	global gRoomHeight
+	global gAvatourBlankType
+	global gAvatourVisibleFlg
+	global gAvatourWidth
+	global gAvatourHeight
+	global gAvatourPosX
+	global gAvatourPosY
+	global gAvatourPosZ
+    
+    
+    URL = os.getcwd()
+    path1 = URL + '\prop\UserInfo.txt'
+    
+    try:
+        f = open(path1, encoding='UTF-8')
+    except OSError as e:
+        messagebox.showinfo('エラー','装備中アバターアイテムデータがありません')
+        return
+    else:
+        lines = f.readlines()
+        
+        for line in lines:
+            line = line.rstrip('\n')
+            vars = line.split('=');
+			
+			if vars[0] == "gCurrentToDoTaskPoint"
+				gCurrentToDoTaskPoint = int(vars[1])
+			if vars[0] == "gRoomWidth":
+				gRoomWidth = int(vars[1])
+			if vars[0] == "gRoomHeight":
+				gRoomHeight = int(vars[1])
+			if vars[0] == "gAvatourBlankType":
+				gAvatourBlankType = int(vars[1]) 
+			if vars[0] == "gAvatourVisibleFlg":
+				if vars[1] == "True":
+					gAvatourVisibleFlg = True
+				else:
+					gAvatourVisibleFlg = False
+			if vars[0] == "gAvatourWidth": 
+				gAvatourWidth = int(vars[1])
+			if vars[0] == "gAvatourHeight": 
+				gAvatourHeight = int(vars[1])
+			if vars[0] == "gAvatourPosX": 
+				gAvatourPosX = int(vars[1])
+			if vars[0] == "gAvatourPosY": 
+				gAvatourPosY = int(vars[1])
+			if vars[0] == "gAvatourPosZ": 
+				gAvatourPosZ = int(vars[1])
+
+        f.close()
+
+	return
+
+def calcExpandRoomPoint(height, width):
+    global gRoomWidth
+    global gRoomHeight
+    
+    prevSize = gRoomWidth * gRoomHeight
+    newSize = height * width
+    
+    needPt = int((newSize - prevSize) * 0.1)
+    
+    return needPt
+
 def calcFanitureSetPoint(height, width):
     print("height:"+str(height))
     print("width:"+str(width))
@@ -204,6 +278,7 @@ def SijoTabSelectBoxselected(event):
     gSijoTabPriceLabel.configure(text=str1);
     
 def main():
+    global gMain_View
     global gSijoTab1
     global gTaskListTab
     global gAddTaskTab
@@ -214,6 +289,7 @@ def main():
     global gDeleteAvatourItemTab
     global gShowCurrentToDoTaskPointTab
     global gAvatourConfigurationTab
+    global gExpandRoomTab
     global gCurrentMarketURL
     global gCurrentMarketName
     global gMarketShohinList
@@ -222,16 +298,16 @@ def main():
 
 
     #メインウィンドウ作成
-    main_view = tkinter.Tk()
+    gMain_View = tkinter.Tk()
     
     #メインウィンドウタイトル設定
-    main_view.title("Test title")
+    gMain_View.title("Test title")
     
     #メインウィンドウの大きさ設定
-    main_view.geometry("1000x500")
+    gMain_View.geometry("1000x500")
     
     #メインウィンドウにnotebook作成
-    nb = ttk.Notebook(main_view)
+    nb = ttk.Notebook(gMain_View)
     
     gSijoTab1 = tkinter.Frame(nb)
     gTaskListTab = tkinter.Frame(nb)
@@ -242,7 +318,9 @@ def main():
     gDeleteFanitureTab = tkinter.Frame(nb)
     gDeleteAvatourItemTab = tkinter.Frame(nb)
     gShowCurrentToDoTaskPointTab = tkinter.Frame(nb)
+    gExpandRoomTab = tkinter.Frame(nb)
     gAvatourConfigurationTab = tkinter.Frame(nb)
+    
     
 
     nb.add(gTaskListTab, text="タスク一覧", padding=5)
@@ -254,6 +332,7 @@ def main():
     nb.add(gAddAvatourItemTab, text="アバターアイテム追加", padding=5)
     nb.add(gDeleteAvatourItemTab, text="アバターアイテム削除", padding=5)
     nb.add(gAvatourConfigurationTab, text="アバター表示設定", padding=5)
+    nb.add(gExpandRoomTab, text="部屋の拡張", padding=5)
     nb.add(gShowCurrentToDoTaskPointTab, text="現在の保有ポイント", padding=5)
     
     #メインフレームでのnotebook配置を決定する。
@@ -269,13 +348,17 @@ def main():
     gDeleteFanitureTab_main()
     gDeleteAvatourItemTab_main()
     gShowCurrentToDoTaskPointTab_main()
+    gExpandRoomTab_main()
     gAvatourConfigurationTab_main()
- 
+
+     #閉じたときのイベントセット
+    gMain_View.protocol("WM_DELETE_WINDOW", on_closing)
+
     #main_viewを表示する無限ループ
-    main_view.mainloop()
- 
+    gMain_View.mainloop()
+
     return 0
- 
+
 def sijoTab_main():
     global gSijoTab1
     global gTaskListTab
@@ -2684,6 +2767,139 @@ def getPosAndSizeEntryValsOnAvatourConfigurationTab():
         
     return True
 
+def gExpandRoomTab_main():
+    global gExpandRoomTab
+    global gExpandRoomTabHeightEntry
+    global gExpandRoomTabWidthEntry
+    global gExpandRoomTabPriceLabel
+    global gRoomWidth
+    global gRoomHeight
+    
+    label1 = tkinter.Label(gExpandRoomTab, text="部屋の拡張")
+    label1.place(x=10, y=30)
+    
+    posLabel1 = tkinter.Label(gExpandRoomTab, text="高さ:")
+    posLabel1.place(x=10, y=60)
+    gExpandRoomTabHeightEntry = tkinter.Entry(gExpandRoomTab, width=4)
+    gExpandRoomTabHeightEntry.place(x=150, y=60)
+    gExpandRoomTabHeightEntry.insert(0, str(gRoomHeight))
+    
+    posLabel3 = tkinter.Label(gExpandRoomTab, text="幅:")
+    posLabel3.place(x=10, y=90)
+    gExpandRoomTabWidthEntry = tkinter.Entry(gExpandRoomTab, width=4)
+    gExpandRoomTabWidthEntry.place(x=150, y=90)
+    gExpandRoomTabWidthEntry.insert(0, str(gRoomWidth))
+    
+    gExpandRoomTabPriceLabel = tkinter.Label(gExpandRoomTab, text="拡張に必要なポイント:")
+    gExpandRoomTabPriceLabel.place(x=10, y=120)    
+
+    button1 = ttk.Button(
+        gExpandRoomTab,
+        text='拡張時のポイント計算',
+        command=calcToExpandPointCallBack())
+    button1.place(x=10,y=150)    
+    
+    button2 = ttk.Button(
+        gExpandRoomTab,
+        text='決定',
+        command=expandRoomCallBack())
+    button2.place(x=10,y=180)
+    
+    return
+
+def calcToExpandPointCallBack():
+
+    def calcToExpandPoint():
+        global gExpandRoomTabHeightEntry
+        global gExpandRoomTabWidthEntry
+        global gExpandRoomTabPriceLabel
+
+        NStr3 = gExpandRoomTabWidthEntry.get()
+        if not NStr3.isdecimal():
+            return
+        else :
+            Num3 = int(NStr3)
+            if Num3 < gRoomWidth:
+                return
+                
+        NStr4 = gExpandRoomTabHeightEntry.get()
+        if not NStr4.isdecimal():
+            return False
+        else :
+            Num4 = int(NStr4)
+            if Num4 < gRoomHeight:
+                return        
+        
+        width = Num3
+        height = Num4
+        
+        needPt = calcExpandRoomPoint(height, width)
+        
+        str1 = "拡張に必要なポイント:" + str(needPt)
+        gExpandRoomTabPriceLabel.configure(text=str1);
+        
+        return
+        
+    return calcToExpandPoint
+    
+def expandRoomCallBack():
+
+    def expandRoom():
+        global gExpandRoomTabHeightEntry
+        global gExpandRoomTabWidthEntry
+        
+        
+        if not getRoomSizeEntryValsOngExpandRoomTab():
+            messagebox.showinfo('メッセージ','部屋の高さと幅は現在の数値以上のものを入力してください')
+        else:
+            messagebox.showinfo('メッセージ', '部屋を拡張しました')
+            DisplayRoom()
+            DisplayCuttentToDoTaskPointTab()
+            
+    return expandRoom
+
+def getRoomSizeEntryValsOngExpandRoomTab():
+    global gExpandRoomTabHeightEntry
+    global gExpandRoomTabWidthEntry
+    global gRoomWidth
+    global gRoomHeight
+    global gCurrentToDoTaskPoint
+
+    NStr3 = gExpandRoomTabWidthEntry.get()
+    if not NStr3.isdecimal():
+        return False
+    else :
+        Num3 = int(NStr3)
+        if Num3 < gRoomWidth:
+            return False
+            
+    NStr4 = gExpandRoomTabHeightEntry.get()
+    if not NStr4.isdecimal():
+        return False
+    else :
+        Num4 = int(NStr4)
+        if Num4 < gRoomHeight:
+            return False
+     
+     
+    needPt = calcExpandRoomPoint(Num4, Num3)
+    if gCurrentToDoTaskPoint < needPt:
+        messagebox.showinfo('メッセージ', "拡張に必要なポイントが足りません")
+        return False
+        
+    gRoomWidth = Num3
+    gRoomHeight = Num4
+    gCurrentToDoTaskPoint = gCurrentToDoTaskPoint - needPt
+        
+    return True
+
+def on_closing():
+    global gMain_View
+    
+    if messagebox.askokcancel("Quit", "ウィンドウを閉じますか?"):
+        gMain_View.destroy()
+        
+    
 if __name__ == "__main__":
     main()
     
