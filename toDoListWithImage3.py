@@ -35,6 +35,7 @@ gAddAvatourItemTab = ''
 gDeleteFanitureTab = ''
 gDeleteAvatourItemTab = ''
 gShowCurrentToDoTaskPointTab = ''
+gAvatourConfigurationTab = ''
 
 
 gCurrentMarketURL=''
@@ -130,6 +131,14 @@ gAvatourItemDelButtons=[]
 gAvatourItemDelPrevButtons=[]
 gDeleteAvatourItemTabTree=''
 
+gVisibleFlgRadioValue=True
+gAvatourBlankTypeRadioValue=1
+gAvatourConfigurationTabPosXEntry=''
+gAvatourConfigurationTabPosYEntry=''
+gAvatourConfigurationTabPosZEntry=''
+gAvatourConfigurationTabSizeXEntry=''
+gAvatourConfigurationTabSizeYEntry=''
+
 def calcFanitureSetPoint(height, width):
     print("height:"+str(height))
     print("width:"+str(width))
@@ -204,6 +213,7 @@ def main():
     global gDeleteFanitureTab
     global gDeleteAvatourItemTab
     global gShowCurrentToDoTaskPointTab
+    global gAvatourConfigurationTab
     global gCurrentMarketURL
     global gCurrentMarketName
     global gMarketShohinList
@@ -232,6 +242,7 @@ def main():
     gDeleteFanitureTab = tkinter.Frame(nb)
     gDeleteAvatourItemTab = tkinter.Frame(nb)
     gShowCurrentToDoTaskPointTab = tkinter.Frame(nb)
+    gAvatourConfigurationTab = tkinter.Frame(nb)
     
 
     nb.add(gTaskListTab, text="タスク一覧", padding=5)
@@ -242,6 +253,7 @@ def main():
     nb.add(gAvatourItemShopTab, text="アバターアイテムショップ", padding=5)
     nb.add(gAddAvatourItemTab, text="アバターアイテム追加", padding=5)
     nb.add(gDeleteAvatourItemTab, text="アバターアイテム削除", padding=5)
+    nb.add(gAvatourConfigurationTab, text="アバター表示設定", padding=5)
     nb.add(gShowCurrentToDoTaskPointTab, text="現在の保有ポイント", padding=5)
     
     #メインフレームでのnotebook配置を決定する。
@@ -257,7 +269,7 @@ def main():
     gDeleteFanitureTab_main()
     gDeleteAvatourItemTab_main()
     gShowCurrentToDoTaskPointTab_main()
-    
+    gAvatourConfigurationTab_main()
  
     #main_viewを表示する無限ループ
     main_view.mainloop()
@@ -1164,6 +1176,8 @@ def DisplayPreViewCallBack():
         global gAvatourPosX
         global gAvatourPosY
         global gAvatourPosZ
+        
+        avatourDrawedFlg=False
     
         gSearchedHavingFaniture = gMyHavingFaniture.copy()
         if not gHavingFanitureListBox.curselection():
@@ -1192,8 +1206,13 @@ def DisplayPreViewCallBack():
         #アバターを描画
             if gAvatourVisibleFlg == True and fn[4] >= gAvatourPosZ:
                 roomImg = AddImage(roomImg, avatourImg, gAvatourPosX, gAvatourPosY, gAvatourHeight, gAvatourWidth)
+                avatourDrawedFlg=True
                 
             roomImg = AddImage(roomImg, fnImg, fn[2], fn[3], fn[5], fn[6])
+            
+            #アバターが画面の一番手前にいるとき
+        if avatourDrawedFlg == False:
+            roomImg = AddImage(roomImg, avatourImg, gAvatourPosX, gAvatourPosY, gAvatourHeight, gAvatourWidth)
         
         gCurrentPreviewRoomImg = roomImg
 
@@ -1215,6 +1234,8 @@ def DisplayRoom():
     global gAvatourPosY
     global gAvatourPosZ
     
+    avatourDrawedFlg=False
+    
     avatourImg = MakeAvatourImage()
     
     roomImg = cv2.imread("blank.png")    
@@ -1230,9 +1251,13 @@ def DisplayRoom():
         #アバターを描画
         if gAvatourVisibleFlg == True and fn[4] >= gAvatourPosZ:
             roomImg = AddImage(roomImg, avatourImg, gAvatourPosX, gAvatourPosY, gAvatourHeight, gAvatourWidth)
-        
-
+            avatourDrawedFlg=True
+    
         roomImg = AddImage(roomImg, fnImg, fn[2], fn[3], fn[5], fn[6])
+    
+    #アバターが画面の一番手前にいるとき
+    if avatourDrawedFlg == False:
+        roomImg = AddImage(roomImg, avatourImg, gAvatourPosX, gAvatourPosY, gAvatourHeight, gAvatourWidth)
     
     gCurrentRoomImg = roomImg
 
@@ -2029,7 +2054,7 @@ def LoadAvatour():
         
         
     return
-#aaa   
+
 def setItemCallBack():
 
     def setItem():
@@ -2491,6 +2516,173 @@ def DisplayCuttentToDoTaskPointTab():
     gCurrentToDoTaskPointStrLabel.configure(text=str1);
     
     return
+
+def gAvatourConfigurationTab_main():
+    global gAvatourConfigurationTab    
+    global gAvatourConfigurationTabPosXEntry
+    global gAvatourConfigurationTabPosYEntry
+    global gAvatourConfigurationTabPosZEntry
+    global gAvatourConfigurationTabSizeXEntry
+    global gAvatourConfigurationTabSizeYEntry
+    global gVisibleFlgRadioValue
+    global gAvatourBlankTypeRadioValue
+    
+    #文字を表示する。
+    param_name = tkinter.Label(gAvatourConfigurationTab, text="アバター表示設定")
+    param_name.place(x=10, y=30)
+
+    visibleFlgLabel = tkinter.Label(gAvatourConfigurationTab, text="アバターの表示")
+    visibleFlgLabel.place(x=10, y=60)
+    
+    gVisibleFlgRadioValue = tkinter.IntVar(master=gAddTaskTab, value=True)
+    rdioVisible = tkinter.Radiobutton(gAvatourConfigurationTab, variable = gVisibleFlgRadioValue, text="表示する", value=True)
+    rdioHidden = tkinter.Radiobutton(gAvatourConfigurationTab, variable = gVisibleFlgRadioValue, text="表示しない", value=False)
+    
+    rdioVisible.place(x=10, y=90)
+    rdioHidden.place(x=10, y=120)   
+    
+    label2 = tkinter.Label(gAvatourConfigurationTab, text="アバターの下地")
+    label2.place(x=10, y=150)
+    
+    gAvatourBlankTypeRadioValue = tkinter.IntVar(master=gAddTaskTab, value=1)
+    rdioWireFlameBlank = tkinter.Radiobutton(gAvatourConfigurationTab, variable = gAvatourBlankTypeRadioValue, text="あり", value=1)
+    rdioAllBlank = tkinter.Radiobutton(gAvatourConfigurationTab, variable = gAvatourBlankTypeRadioValue, text="なし", value=2)
+    
+    rdioWireFlameBlank.place(x=10, y=180)
+    rdioAllBlank.place(x=10, y=210)
+    
+    label3 = tkinter.Label(gAvatourConfigurationTab, text="アバターの表示位置")
+    label3.place(x=100, y=30)
+    
+    posLabel1 = tkinter.Label(gAvatourConfigurationTab, text="x位置:")
+    posLabel1.place(x=100, y=60)
+    gAvatourConfigurationTabPosXEntry = tkinter.Entry(gAvatourConfigurationTab, width=4)
+    gAvatourConfigurationTabPosXEntry.place(x=150, y=60)
+    gAvatourConfigurationTabPosXEntry.insert(0, "0")
+    
+    posLabel3 = tkinter.Label(gAvatourConfigurationTab, text="y位置:")
+    posLabel3.place(x=100, y=90)
+    gAvatourConfigurationTabPosYEntry = tkinter.Entry(gAvatourConfigurationTab, width=4)
+    gAvatourConfigurationTabPosYEntry.place(x=150, y=90)
+    gAvatourConfigurationTabPosYEntry.insert(0, "0")
+    
+
+    posLabel4 = tkinter.Label(gAvatourConfigurationTab, text="z位置:")
+    posLabel4.place(x=100, y=120)
+    gAvatourConfigurationTabPosZEntry = tkinter.Entry(gAvatourConfigurationTab, width=4)
+    gAvatourConfigurationTabPosZEntry.place(x=150, y=120)
+    gAvatourConfigurationTabPosZEntry.insert(0, "0")
+    
+    label3 = tkinter.Label(gAvatourConfigurationTab, text="アバターのサイズ")
+    label3.place(x=100, y=150)
+    
+    sizeLabel2 = tkinter.Label(gAvatourConfigurationTab, text="高さ:")
+    sizeLabel2.place(x=100, y=180)
+    gAvatourConfigurationTabSizeYEntry = tkinter.Entry(gAvatourConfigurationTab, width=4)
+    gAvatourConfigurationTabSizeYEntry.place(x=150, y=180)
+    gAvatourConfigurationTabSizeYEntry.insert(0, "0")
+        
+    sizeLabel3 = tkinter.Label(gAvatourConfigurationTab, text="幅:")
+    sizeLabel3.place(x=100, y=210)
+    gAvatourConfigurationTabSizeXEntry = tkinter.Entry(gAvatourConfigurationTab, width=4)
+    gAvatourConfigurationTabSizeXEntry.place(x=150, y=210)
+    gAvatourConfigurationTabSizeXEntry.insert(0, "0")
+        
+    button1 = ttk.Button(
+        gAvatourConfigurationTab,
+        text='決定',
+        command=changeConfigurationCallBack())
+    button1.place(x=10,y=250)
+
+def changeConfigurationCallBack():
+
+    def changeConfiguration():
+        global gVisibleFlgRadioValue
+        global gAvatourBlankTypeRadioValue
+        global gAvatourBlankType
+        global gAvatourVisibleFlg
+        
+        if not getPosAndSizeEntryValsOnAvatourConfigurationTab():
+            return
+        
+        gAvatourVisibleFlg = gVisibleFlgRadioValue.get()
+        gAvatourBlankType = gAvatourBlankTypeRadioValue.get()
+        
+        DisplayRoom()
+        
+        return 0
+        
+    return changeConfiguration
+
+def getPosAndSizeEntryValsOnAvatourConfigurationTab():    
+    global gAvatourWidth
+    global gAvatourHeight
+    global gAvatourPosX
+    global gAvatourPosY
+    global gAvatourPosZ
+    global gAvatourConfigurationTabPosXEntry
+    global gAvatourConfigurationTabPosYEntry
+    global gAvatourConfigurationTabPosZEntry
+    global gAvatourConfigurationTabSizeXEntry
+    global gAvatourConfigurationTabSizeYEntry 
+        
+    gFnPosX = 0
+    gFnPosY = 0
+    gFnPosZ = 0
+    gFnSizeX = 0
+    gFnSizeY = 0
+    
+    NStr1 = gAvatourConfigurationTabPosXEntry.get()
+    if not NStr1.isdecimal():
+        return False
+    else :
+        Num = int(NStr1)
+        if Num < 0:
+            return False
+        else:
+            gAvatourPosX = Num
+            
+    NStr2 = gAvatourConfigurationTabPosYEntry.get()
+    if not NStr2.isdecimal():
+        return False
+    else :
+        Num = int(NStr2)
+        if Num < 0:
+            return False
+        else:
+            gAvatourPosY = Num
+            
+    NStr5 = gAvatourConfigurationTabPosZEntry.get()
+    if not NStr5.isdecimal():
+        return False
+    else :
+        Num = int(NStr5)
+        if Num < 0:
+            return False
+        else:
+            gAvatourPosZ = Num            
+            
+    NStr3 = gAvatourConfigurationTabSizeXEntry.get()
+    if not NStr3.isdecimal():
+        return False
+    else :
+        Num = int(NStr3)
+        if Num <= 0:
+            return False
+        else:
+            gAvatourWidth = Num
+            
+    NStr4 = gAvatourConfigurationTabSizeYEntry.get()
+    if not NStr4.isdecimal():
+        return False
+    else :
+        Num = int(NStr4)
+        if Num <= 0:
+            return False
+        else:
+            gAvatourHeight = Num
+        
+    return True
 
 if __name__ == "__main__":
     main()
