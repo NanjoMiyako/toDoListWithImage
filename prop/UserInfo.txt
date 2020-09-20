@@ -1,0 +1,9 @@
+gCurrentToDoTaskPoint = 9999
+gRoomWidth=300
+gRoomHeight=300
+gAvatourBlankType=1
+gAvatourWidth=100
+gAvatourHeight=150
+gAvatourPosX=0
+gAvatourPosY=0
+gAvatourPosZ=0
