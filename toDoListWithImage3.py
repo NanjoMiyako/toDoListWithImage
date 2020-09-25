@@ -775,6 +775,71 @@ def loadTaskData():
         
     return
 
+
+#リセット間隔に応じてタスクの達成回数をリセット
+def UpDateTaskList():
+    #タイトル,難易度,達成回数,リセット日時,リセット間隔(D,W,M,Y)
+    global gTaskList;
+    
+    dt = datetime.datetime.now()
+    year = dt.year
+    month = dt.month
+    day = dt.day
+    #print(dt.year)
+    #print(dt.month)
+    #print(dt.day)
+    
+    currentTimeStr = datetime.date.today().strftime('%Y%m%d')
+    
+    for t1 in gTaskList:
+        ResetTime = t1[3]
+        year1 = int(ResetTime[0:4])
+        month1 = int(ResetTime[4:6])
+        day1 = int(ResetTime[6:8])
+        
+        if t1[4] == "Y":
+            if year > year1:
+                t1[3] = currentTimeStr
+                t1[2] = 0
+            
+        elif t1[4] == "M":
+            if year > year1 or month > month1:
+                t1[3] = currentTimeStr
+                t1[2] = 0
+            
+        elif t1[4] == "W":
+            dt1 = datetime.datetime(year=year1, month=month1, day=day1)
+            dt2 = datetime.datetime(year=dt.year, month=dt.month, day=dt.day)
+            
+            td = dt2 - dt1
+            if td.days >= 8:
+                t1[3] = currentTimeStr
+                t1[2] = 0
+            else:
+                for i in range(1,8):
+                    dt3 = datetime(year=year1, month=month1, day=day1+i)
+                    if dt1.weekday() == 0:
+                        break
+                    
+                if dt3 < dt:
+                    t1[3] = currentTimeStr
+                    t1[2] = 0
+                
+            
+        
+        elif t1[4] == "D":
+            dt1 = datetime.datetime(year=year1, month=month1, day=day1)
+            dt2 = datetime.datetime(year=dt.year, month=dt.month, day=dt.day)
+            
+            td = dt2 - dt1
+            
+            if td.days >= 1:
+                t1[3] = currentTimeStr
+                t1[2] = 0
+        
+    return
+    
+    
 def DisplayTaskListTab():
     global gTaskListTab
     global gTaskListTabTree
@@ -3049,6 +3114,8 @@ def on_closing():
     
 if __name__ == "__main__":
     Init()
+    
+    UpDateTaskList()
     
     main()
     
