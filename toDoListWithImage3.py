@@ -23,11 +23,10 @@ gAvatourPosY = 0
 gAvatourPosZ = 0
 
 
-gCurrentToDoTaskPoint = 9999
+gCurrentToDoTaskPoint = 0
 gCurrentToDoTaskPointStrLabel=''
 gGetTaskPointVols=[10,20,30,40]
 
-print(
 
 #タブリスト
 gSijoTab1 = ''
@@ -146,21 +145,94 @@ gAvatourConfigurationTabSizeYEntry=''
 
 gExpandRoomTabPriceLabel=''
 
+
+
+
+def Init():
+
+    URL = os.getcwd()
+    path1 = URL + '\\prop'
+    
+    #ディレクトリ、ファイルがなかったとき
+    if not os.path.exists(path1):
+        os.mkdir(path1)
+        InitUserInfo()
+        
+        path2 = URL + "\\prop\\MyAvatour.txt"
+        f = open(path2, encoding='UTF-8', mode='w')
+        f.close()
+
+        path2 = URL + "\\prop\\MyHavingAvatourItem.txt"
+        f = open(path2, encoding='UTF-8', mode='w')
+        f.close()
+        
+        path2 = URL + "\\prop\\MyHavingFaniture.txt"
+        f = open(path2, encoding='UTF-8', mode='w')
+        f.close()
+
+        path2 = URL + "\\prop\\MyRoomFaniture.txt"
+        f = open(path2, encoding='UTF-8', mode='w')
+        f.close()
+
+        path2 = URL + "\\prop\\TaskData.txt"
+        f = open(path2, encoding='UTF-8', mode='w')
+        f.close()
+        
+        path2 = URL + "\\prop\\UserInfo.txt"
+        f = open(path2, encoding='UTF-8', mode='w')
+        f.close()
+        
+    else:
+        LoadUserInfo()
+        loadTaskData()
+        LoadHavingFaniture()
+        LoadFaniture()
+        LoadHavingFaniture()
+        LoadHavingAvatourItem()
+        LoadAvatour()
+        
+    return
+
+
+def InitUserInfo():
+    global gCurrentToDoTaskPoint
+    global gRoomWidth
+    global gRoomHeight
+    global gAvatourBlankType
+    global gAvatourVisibleFlg
+    global gAvatourWidth
+    global gAvatourHeight
+    global gAvatourPosX
+    global gAvatourPosY
+    global gAvatourPosZ
+    
+    gCurrentToDoTaskPoint=0
+    gRoomWidth=300
+    gRoomHeight=300
+    gAvatourBlankType=1
+    gAvatourWidth=100
+    gAvatourHeight=150
+    gAvatourPosX=0
+    gAvatourPosY=0
+    gAvatourPosZ=0
+    
+    return
+
 def LoadUserInfo():
-	global gCurrentToDoTaskPoint
-	global gRoomWidth
-	global gRoomHeight
-	global gAvatourBlankType
-	global gAvatourVisibleFlg
-	global gAvatourWidth
-	global gAvatourHeight
-	global gAvatourPosX
-	global gAvatourPosY
-	global gAvatourPosZ
+    global gCurrentToDoTaskPoint
+    global gRoomWidth
+    global gRoomHeight
+    global gAvatourBlankType
+    global gAvatourVisibleFlg
+    global gAvatourWidth
+    global gAvatourHeight
+    global gAvatourPosX
+    global gAvatourPosY
+    global gAvatourPosZ
     
     
     URL = os.getcwd()
-    path1 = URL + '\prop\UserInfo.txt'
+    path1 = URL + '\\prop\\UserInfo.txt'
     
     try:
         f = open(path1, encoding='UTF-8')
@@ -173,35 +245,98 @@ def LoadUserInfo():
         for line in lines:
             line = line.rstrip('\n')
             vars = line.split('=');
-			
-			if vars[0] == "gCurrentToDoTaskPoint"
-				gCurrentToDoTaskPoint = int(vars[1])
-			if vars[0] == "gRoomWidth":
-				gRoomWidth = int(vars[1])
-			if vars[0] == "gRoomHeight":
-				gRoomHeight = int(vars[1])
-			if vars[0] == "gAvatourBlankType":
-				gAvatourBlankType = int(vars[1]) 
-			if vars[0] == "gAvatourVisibleFlg":
-				if vars[1] == "True":
-					gAvatourVisibleFlg = True
-				else:
-					gAvatourVisibleFlg = False
-			if vars[0] == "gAvatourWidth": 
-				gAvatourWidth = int(vars[1])
-			if vars[0] == "gAvatourHeight": 
-				gAvatourHeight = int(vars[1])
-			if vars[0] == "gAvatourPosX": 
-				gAvatourPosX = int(vars[1])
-			if vars[0] == "gAvatourPosY": 
-				gAvatourPosY = int(vars[1])
-			if vars[0] == "gAvatourPosZ": 
-				gAvatourPosZ = int(vars[1])
+            
+            if vars[0] == "gCurrentToDoTaskPoint":
+                gCurrentToDoTaskPoint = int(vars[1])
+            if vars[0] == "gRoomWidth":
+                gRoomWidth = int(vars[1])
+            if vars[0] == "gRoomHeight":
+                gRoomHeight = int(vars[1])
+            if vars[0] == "gAvatourBlankType":
+                gAvatourBlankType = int(vars[1]) 
+            if vars[0] == "gAvatourVisibleFlg":
+                if vars[1] == "True":
+                    gAvatourVisibleFlg = True
+                else:
+                    gAvatourVisibleFlg = False
+            if vars[0] == "gAvatourWidth": 
+                gAvatourWidth = int(vars[1])
+            if vars[0] == "gAvatourHeight": 
+                gAvatourHeight = int(vars[1])
+            if vars[0] == "gAvatourPosX": 
+                gAvatourPosX = int(vars[1])
+            if vars[0] == "gAvatourPosY": 
+                gAvatourPosY = int(vars[1])
+            if vars[0] == "gAvatourPosZ": 
+                gAvatourPosZ = int(vars[1])
 
         f.close()
 
-	return
+    return
 
+
+def saveUserInfo():
+    global gCurrentToDoTaskPoint
+    global gRoomWidth
+    global gRoomHeight
+    global gAvatourBlankType
+    global gAvatourVisibleFlg
+    global gAvatourWidth
+    global gAvatourHeight
+    global gAvatourPosX
+    global gAvatourPosY
+    global gAvatourPosZ
+    
+    URL = os.getcwd()
+    path1 = URL + '\\prop\\UserInfo.txt'
+    
+    f = open(path1, encoding='UTF-8', mode='w')
+    
+    str1 = "gCurrentToDoTaskPoint="+str(gCurrentToDoTaskPoint)
+    f.write(str1)
+    f.write('\n')
+    
+    str1 = "gRoomWidth="+str(gRoomWidth)
+    f.write(str1)
+    f.write('\n')    
+    
+    str1 = "gRoomHeight=" + str(gRoomHeight)
+    f.write(str1)
+    f.write('\n')
+    
+    str1 = "gAvatourBlankType=" + str(gAvatourBlankType)
+    f.write(str1)
+    f.write('\n')
+    
+    if gAvatourVisibleFlg == True:
+        str1 = "gAvatourVisibleFlg=" + "True"
+    else:
+        str1 = "gAvatourVisibleFlg=" + "False"
+    f.write(str1)
+    f.write('\n')
+    
+    str1 = "gAvatourWidth=" + str(gAvatourWidth)
+    f.write(str1)
+    f.write('\n')
+    
+    str1 = "gAvatourHeight=" + str(gAvatourHeight)
+    f.write(str1)
+    f.write('\n')
+    
+    str1 = "gAvatourPosX=" + str(gAvatourPosX)
+    f.write(str1)
+    f.write('\n')
+    
+    str1 = "gAvatourPosY=" + str(gAvatourPosY)
+    f.write(str1)
+    f.write('\n')
+    
+    str1 = "gAvatourPosZ=" + str(gAvatourPosZ)
+    f.write(str1)
+    f.write('\n')
+
+    f.close()
+    
 def calcExpandRoomPoint(height, width):
     global gRoomWidth
     global gRoomHeight
@@ -490,7 +625,7 @@ def saveHavingFanitureList():
     
     try:
         URL = os.getcwd()
-        path1 = URL + "\\prop\MyHavingFaniture.txt"
+        path1 = URL + "\\prop\\MyHavingFaniture.txt"
         f = open(path1, encoding='UTF-8', mode='w')
     except OSError as e:
         messagebox.showinfo('エラー','ファイルのオープンに失敗しました')
@@ -609,16 +744,16 @@ def gTaskListTab_main():
     
     gTaskListTabTree.place(x=10, y=60)
     
-    path1 = os.getcwd()
-    loadTaskData(path1);
+    loadTaskData();
     DisplayTaskListTab();
     
     return 0
 
-def loadTaskData(URL):
+def loadTaskData():
     global gTaskList
     
-    path1 = URL + '\prop\TaskData.txt'
+    URL = os.getcwd()
+    path1 = URL + '\\prop\\TaskData.txt'
     
     try:
         f = open(path1, encoding='UTF-8')
@@ -806,7 +941,7 @@ def registTaskCallBack():
 def saveTaskList():
     try:
         URL = os.getcwd()
-        path1 = URL + "\\prop\TaskData.txt"
+        path1 = URL + "\\prop\\TaskData.txt"
         f = open(path1, encoding='UTF-8', mode='w')
     except OSError as e:
         messagebox.showinfo('エラー','ファイルのオープンに失敗しました')
@@ -990,7 +1125,7 @@ def fixFanitureCallBack():
 def saveMyRoomFanitureList():
     try:
         URL = os.getcwd()
-        path1 = URL + "\\prop\MyRoomFaniture.txt"
+        path1 = URL + "\MyRoomFaniture.txt"
         f = open(path1, encoding='UTF-8', mode='w')
     except OSError as e:
         messagebox.showinfo('エラー','ファイルのオープンに失敗しました')
@@ -1380,7 +1515,7 @@ def LoadFaniture():
     global gMyFaniture
     
     URL = os.getcwd()
-    path1 = URL + '\prop\MyRoomFaniture.txt'
+    path1 = URL + '\\prop\\MyRoomFaniture.txt'
     
     try:
         f = open(path1, encoding='UTF-8')
@@ -1423,7 +1558,7 @@ def LoadHavingFaniture():
     global gMyHavingFaniture
     
     URL = os.getcwd()
-    path1 = URL + '\prop\MyHavingFaniture.txt'
+    path1 = URL + '\\prop\\MyHavingFaniture.txt'
     
     try:
         f = open(path1, encoding='UTF-8')
@@ -1621,7 +1756,7 @@ def saveHavingAvatourItemList():
     
     try:
         URL = os.getcwd()
-        path1 = URL + "\\prop\MyHavingAvatourItem.txt"
+        path1 = URL + "\\prop\\MyHavingAvatourItem.txt"
         f = open(path1, encoding='UTF-8', mode='w')
     except OSError as e:
         messagebox.showinfo('エラー','ファイルのオープンに失敗しました')
@@ -2040,7 +2175,7 @@ def LoadHavingAvatourItem():
     global gMyHavingAvatourItem
     
     URL = os.getcwd()
-    path1 = URL + '\prop\MyHavingAvatourItem.txt'
+    path1 = URL + '\\prop\\MyHavingAvatourItem.txt'
     
     try:
         f = open(path1, encoding='UTF-8')
@@ -2100,7 +2235,7 @@ def LoadAvatour():
     global gMyAvatourItem
     
     URL = os.getcwd()
-    path1 = URL + '\prop\MyAvatour.txt'
+    path1 = URL + '\\prop\\MyAvatour.txt'
     
     try:
         f = open(path1, encoding='UTF-8')
@@ -2181,7 +2316,7 @@ def saveMyAvatourItemList():
     
     try:
         URL = os.getcwd()
-        path1 = URL + "\\prop\MyAvatour.txt"
+        path1 = URL + "\\prop\\MyAvatour.txt"
         f = open(path1, encoding='UTF-8', mode='w')
     except OSError as e:
         messagebox.showinfo('エラー','ファイルのオープンに失敗しました')
@@ -2333,7 +2468,7 @@ def saveFanitureList():
         
     try:
         URL = os.getcwd()
-        path1 = URL + "\\prop\MyRoomFaniture.txt"
+        path1 = URL + "\\prop\\MyRoomFaniture.txt"
         f = open(path1, encoding='UTF-8', mode='w')
     except OSError as e:
         messagebox.showinfo('エラー','ファイルのオープンに失敗しました')
@@ -2499,7 +2634,7 @@ def saveAvatourItemList():
         
     try:
         URL = os.getcwd()
-        path1 = URL + "\\prop\MyAvatour.txt"
+        path1 = URL + "\\prop\\MyAvatour.txt"
         f = open(path1, encoding='UTF-8', mode='w')
     except OSError as e:
         messagebox.showinfo('エラー','ファイルのオープンに失敗しました')
@@ -2897,10 +3032,24 @@ def on_closing():
     global gMain_View
     
     if messagebox.askokcancel("Quit", "ウィンドウを閉じますか?"):
-        gMain_View.destroy()
         
+        saveUserInfo()
+        saveAvatourItemList()
+        saveFanitureList()
+        saveMyAvatourItemList()
+        saveHavingAvatourItemList()
+        saveMyRoomFanitureList()
+        saveTaskList()
+        saveHavingFanitureList()
+        
+        gMain_View.destroy()
+
+
+    return
     
 if __name__ == "__main__":
+    Init()
+    
     main()
     
     
